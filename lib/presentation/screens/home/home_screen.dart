@@ -20,36 +20,11 @@ class HomeScreen extends StatelessWidget {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF1A1A2E),
-              Color(0xFF16213E),
-              Color(0xFF0F3460),
-              Color(0xFF1A1A2E),
-            ],
-          ),
-        ),
+        decoration: const BoxDecoration(color: AppColors.darkBackground),
         child: SafeArea(
           child: Column(
             children: [
               const SizedBox(height: 16),
-              // Go Premium
-              Align(
-                alignment: Alignment.centerRight,
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 16),
-                  child: Text(
-                    'Go Premium',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.7),
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              ),
               const Spacer(flex: 2),
 
               // Logo Al-Quran
