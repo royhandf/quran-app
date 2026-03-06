@@ -14,6 +14,20 @@ class HomeScreen extends StatelessWidget {
     Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
   }
 
+  Widget _buildOrnamentLine({required bool toRight}) {
+    return Container(
+      width: 60,
+      height: 1.5,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: toRight ? Alignment.centerLeft : Alignment.centerRight,
+          end: toRight ? Alignment.centerRight : Alignment.centerLeft,
+          colors: [AppColors.gold, AppColors.gold.withValues(alpha: 0.0)],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,34 +41,68 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 16),
               const Spacer(flex: 2),
 
-              // Logo Al-Quran
               Column(
                 children: [
-                  Text(
-                    'القرآن الكريم',
-                    style: TextStyle(
-                      fontFamily: 'Amiri',
-                      fontSize: 42,
-                      color: AppColors.gold,
-                      shadows: [
-                        Shadow(
-                          color: Colors.black.withValues(alpha: 0.5),
-                          blurRadius: 10,
-                        ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildOrnamentLine(toRight: false),
+                      const SizedBox(width: 12),
+                      Icon(Icons.star, color: AppColors.gold, size: 14),
+                      const SizedBox(width: 12),
+                      _buildOrnamentLine(toRight: true),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  ShaderMask(
+                    shaderCallback: (bounds) => const LinearGradient(
+                      colors: [
+                        Color(0xFFF5D680),
+                        Color(0xFFD4AF37),
+                        Color(0xFFB8860B),
+                        Color(0xFFD4AF37),
+                        Color(0xFFF5D680),
                       ],
+                      stops: [0.0, 0.25, 0.5, 0.75, 1.0],
+                    ).createShader(bounds),
+                    child: Text(
+                      'القرآن الكريم',
+                      style: TextStyle(
+                        fontFamily: 'Amiri',
+                        fontSize: 48,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 2,
+                        height: 1.4,
+                        shadows: [
+                          Shadow(
+                            color: Color(0xFFD4AF37).withValues(alpha: 0.6),
+                            blurRadius: 20,
+                          ),
+                          Shadow(
+                            color: Colors.black.withValues(alpha: 0.8),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  const Icon(
-                    Icons.menu_book_rounded,
-                    color: AppColors.primary,
-                    size: 36,
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildOrnamentLine(toRight: false),
+                      const SizedBox(width: 12),
+                      Icon(Icons.star, color: AppColors.gold, size: 14),
+                      const SizedBox(width: 12),
+                      _buildOrnamentLine(toRight: true),
+                    ],
                   ),
                 ],
               ),
               const Spacer(flex: 2),
-
-              // Menu Buttons
               MenuButton(
                 label: "BACA QUR'AN",
                 onTap: () => _navigate(context, const SurahListScreen()),
