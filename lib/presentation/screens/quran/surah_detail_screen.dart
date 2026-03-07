@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:quran_app/core/utils/arabic_utils.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../data/models/surah.dart';
@@ -110,7 +111,9 @@ class SurahDetailScreen extends StatelessWidget {
                           const SizedBox(height: 16),
                           // Arabic
                           Text(
-                            ayah.textArabic,
+                            settings.showArabicNumbers
+                                ? '${ayah.textArabic} ﴿${toArabicNumeral(ayah.verseNumber)}﴾'
+                                : ayah.textArabic,
                             textAlign: TextAlign.right,
                             style: AppTextStyles.arabicLarge(
                               context,
