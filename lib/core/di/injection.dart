@@ -16,7 +16,7 @@ void configureDependencies() {
   getIt.registerLazySingleton<HiveService>(() => HiveService());
 
   getIt.registerLazySingleton<QuranRepository>(
-    () => QuranRepository(getIt<ApiService>()),
+    () => QuranRepository(getIt<ApiService>(), getIt<HiveService>()),
   );
   getIt.registerLazySingleton<PrayerRepository>(
     () => PrayerRepository(getIt<ApiService>()),

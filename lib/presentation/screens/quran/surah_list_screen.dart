@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../data/local/hive_service.dart';
 import '../../blocs/quran/quran_cubit.dart';
 import '../../blocs/quran/quran_state.dart';
 import '../../blocs/bookmark/bookmark_cubit.dart';
 import '../../blocs/bookmark/bookmark_state.dart';
 import 'surah_detail_screen.dart';
+import 'juz_detail_screen.dart';
 
 class SurahListScreen extends StatefulWidget {
   const SurahListScreen({super.key});
@@ -33,18 +36,33 @@ class _SurahListScreenState extends State<SurahListScreen>
     super.dispose();
   }
 
+  void _showDeleteDialog(BuildContext context, int surahId) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Hapus Data Offline'),
+        content: const Text('Hapus data surah yang sudah didownload?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () {
+              context.read<QuranCubit>().deleteSurah(surahId);
+              Navigator.pop(ctx);
+            },
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ],
-        ),
         title: Row(
           children: [
             Container(
@@ -61,7 +79,13 @@ class _SurahListScreenState extends State<SurahListScreen>
               ),
             ),
             const SizedBox(width: 8),
-            Text("Baca Qur'an", style: AppTextStyles.headingSmall(context)),
+            Flexible(
+              child: Text(
+                "Baca Qur'an",
+                style: AppTextStyles.headingSmall(context),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
         actions: [
@@ -147,9 +171,11 @@ class _SurahListScreenState extends State<SurahListScreen>
             ),
             itemBuilder: (context, index) {
               final surah = state.surahs[index];
-              final isFirst = index == 0;
+              final lastRead = GetIt.I<HiveService>().getLastRead();
+              final isLastRead =
+                  lastRead != null && lastRead['surahId'] == surah.id;
               return Container(
-                color: isFirst
+                color: isLastRead
                     ? AppColors.primary.withValues(alpha: 0.08)
                     : null,
                 child: ListTile(
@@ -165,7 +191,7 @@ class _SurahListScreenState extends State<SurahListScreen>
                     ).copyWith(fontWeight: FontWeight.w600),
                   ),
                   subtitle: Text(
-                    '${surah.revelationPlace == 'makkah' ? 'Mekah' : 'Madinah'.toUpperCase()} | ${surah.versesCount} Ayat',
+                    '${surah.revelationPlace == 'makkah' ? 'Mekah' : 'Madinah'} | ${surah.versesCount} Ayat',
                     style: AppTextStyles.bodySmall(context),
                   ),
                   trailing: Row(
@@ -176,20 +202,36 @@ class _SurahListScreenState extends State<SurahListScreen>
                         style: AppTextStyles.arabicMedium(context),
                       ),
                       const SizedBox(width: 8),
-                      Icon(
-                        Icons.download_outlined,
-                        color: AppColors.primary,
-                        size: 22,
-                      ),
+                      state.downloadedIds.contains(surah.id)
+                          ? GestureDetector(
+                              onLongPress: () =>
+                                  _showDeleteDialog(context, surah.id),
+                              child: Icon(
+                                Icons.check_circle,
+                                color: AppColors.primary,
+                                size: 22,
+                              ),
+                            )
+                          : GestureDetector(
+                              onTap: () => context
+                                  .read<QuranCubit>()
+                                  .downloadSurah(surah.id),
+                              child: Icon(
+                                Icons.download_outlined,
+                                color: AppColors.primary,
+                                size: 22,
+                              ),
+                            ),
                     ],
                   ),
                   onTap: () {
-                    context.read<QuranCubit>().loadVerses(surah);
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => BlocProvider.value(
-                          value: context.read<QuranCubit>(),
+                        builder: (_) => BlocProvider(
+                          create: (_) =>
+                              QuranCubit(context.read<QuranCubit>().repository)
+                                ..loadVerses(surah),
                           child: SurahDetailScreen(surah: surah),
                         ),
                       ),
@@ -206,18 +248,78 @@ class _SurahListScreenState extends State<SurahListScreen>
   }
 
   Widget _buildJuzTab() {
-    return ListView.builder(
-      itemCount: 30,
-      itemBuilder: (context, index) => ListTile(
-        leading: _buildSurahNumber(context, index + 1),
-        title: Text(
-          'Juz ${index + 1}',
-          style: AppTextStyles.bodyLarge(context),
-        ),
-        subtitle: Text(
-          'Halaman ${(index * 20) + 1}',
-          style: AppTextStyles.bodySmall(context),
-        ),
+    return BlocProvider(
+      create: (_) =>
+          QuranCubit(context.read<QuranCubit>().repository)..loadJuzs(),
+      child: BlocBuilder<QuranCubit, QuranState>(
+        builder: (context, state) {
+          if (state is QuranLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (state is QuranError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Error: ${state.message}'),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: () => context.read<QuranCubit>().loadJuzs(),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+          if (state is JuzsLoaded) {
+            return ListView.separated(
+              itemCount: state.juzs.length,
+              separatorBuilder: (_, _) => Divider(
+                height: 1,
+                indent: 70,
+                color: AppColors.dividerColor(context),
+              ),
+              itemBuilder: (context, index) {
+                final juz = state.juzs[index];
+                return ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  leading: _buildSurahNumber(context, juz.juzNumber),
+                  title: Text(
+                    'Juz ${juz.juzNumber}',
+                    style: AppTextStyles.bodyLarge(
+                      context,
+                    ).copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text(
+                    '${juz.getRangeText(state.surahNames)} • ${juz.versesCount} Ayat',
+                    style: AppTextStyles.bodySmall(context),
+                  ),
+                  trailing: Icon(
+                    Icons.chevron_right,
+                    color: AppColors.textSecondary(context),
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => BlocProvider(
+                          create: (_) =>
+                              QuranCubit(context.read<QuranCubit>().repository)
+                                ..loadVersesByJuz(juz.juzNumber),
+                          child: JuzDetailScreen(juzNumber: juz.juzNumber),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            );
+          }
+          return const SizedBox();
+        },
       ),
     );
   }

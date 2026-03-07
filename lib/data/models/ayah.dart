@@ -20,9 +20,16 @@ class Ayah extends Equatable {
       textArabic: json['text_uthmani'] ?? json['text_imlaei'] ?? '',
       textTranslation: json['translations']?.isNotEmpty == true
           ? json['translations'][0]['text']
-          : null,
+          : json['text_translation'],
     );
   }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'verse_number': verseNumber,
+    'text_uthmani': textArabic,
+    'text_translation': textTranslation,
+  };
 
   @override
   List<Object?> get props => [id, verseNumber];

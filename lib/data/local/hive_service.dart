@@ -6,14 +6,17 @@ class HiveService {
   static const String settingsBox = 'settings';
   static const String lastReadKey = 'last_read';
   static const String alarmBox = 'prayer_alarms';
+  static const String versesBox = 'quran_verses';
 
   static Future<void> init() async {
     await Hive.initFlutter();
     await Hive.openBox<Map>(bookmarkBox);
     await Hive.openBox(settingsBox);
     await Hive.openBox<bool>(alarmBox);
+    await Hive.openBox<List>(versesBox);
   }
 
+  Box<List> get _versesBox => Hive.box<List>(versesBox);
   Box<Map> get _bookmarkBox => Hive.box<Map>(bookmarkBox);
   Box<bool> get _alarmBox => Hive.box<bool>(alarmBox);
   Box get _settingsBox => Hive.box(settingsBox);
@@ -47,6 +50,19 @@ class HiveService {
       'ayahNumber': ayahNumber,
       'timestamp': DateTime.now().toIso8601String(),
     });
+  }
+
+  Future<void> saveVerses(
+    int surahId,
+    List<Map<String, dynamic>> verses,
+  ) async {
+    await _versesBox.put(surahId, verses);
+  }
+
+  List<Map<String, dynamic>>? getVerses(int surahId) {
+    final data = _versesBox.get(surahId);
+    if (data == null) return null;
+    return data.cast<Map>().map((m) => Map<String, dynamic>.from(m)).toList();
   }
 
   Future<void> setAlarmEnabled(String prayerName, bool enabled) async =>
@@ -85,4 +101,13 @@ class HiveService {
   bool getUse12HourFormat() =>
       _settingsBox.get('use12HourFormat', defaultValue: false) as bool;
   Future<void> setUse12HourFormat(bool v) => saveSetting('use12HourFormat', v);
+
+  bool isSurahDownloaded(int surahId) => _versesBox.containsKey(surahId);
+  Future<void> deleteVerses(int surahId) async {
+    await _versesBox.delete(surahId);
+  }
+
+  Set<int> getDownloadedSurahIds() {
+    return _versesBox.keys.cast<int>().toSet();
+  }
 }
