@@ -30,17 +30,62 @@ class PrayerTime extends Equatable {
         time.replaceAll(RegExp(r'\s*\([^)]*\)'), '');
 
     return PrayerTime(
-      imsak: cleanTime(timings['Imsak'] ?? timings['Fajr']),
-      fajr: cleanTime(timings['Fajr']),
-      dhuhr: cleanTime(timings['Dhuhr']),
-      asr: cleanTime(timings['Asr']),
-      maghrib: cleanTime(timings['Maghrib']),
-      isha: cleanTime(timings['Isha']),
-      sunrise: cleanTime(timings['Sunrise']),
-      date: date['readable'],
+      imsak: cleanTime(timings['Imsak'] ?? timings['Fajr'] ?? ''),
+      fajr: cleanTime(timings['Fajr'] ?? ''),
+      dhuhr: cleanTime(timings['Dhuhr'] ?? ''),
+      asr: cleanTime(timings['Asr'] ?? ''),
+      maghrib: cleanTime(timings['Maghrib'] ?? ''),
+      isha: cleanTime(timings['Isha'] ?? ''),
+      sunrise: cleanTime(timings['Sunrise'] ?? ''),
+      date: date['readable'] ?? '',
       hijriDate:
-          '${date['hijri']['day']} ${date['hijri']['month']['en']} ${date['hijri']['year']}H',
+          '${date['hijri']?['day'] ?? ''} ${date['hijri']?['month']?['en'] ?? ''} ${date['hijri']?['year'] ?? ''}H',
     );
+  }
+
+  DateTime _parseTime(String time) {
+    final parts = time.split(':');
+    final now = DateTime.now();
+    return DateTime(
+      now.year,
+      now.month,
+      now.day,
+      int.parse(parts[0]),
+      int.parse(parts[1]),
+    );
+  }
+
+  int getNextPrayerIndex() {
+    final now = DateTime.now();
+    final items = toList();
+    for (int i = 0; i < items.length; i++) {
+      if (_parseTime(items[i].time).isAfter(now)) return i;
+    }
+    return -1;
+  }
+
+  PrayerItem? getNextPrayer() {
+    final idx = getNextPrayerIndex();
+    if (idx == -1) return null;
+    return toList()[idx];
+  }
+
+  Duration? getTimeUntilNextPrayer() {
+    final idx = getNextPrayerIndex();
+    if (idx == -1) return null;
+    final items = toList();
+    return _parseTime(items[idx].time).difference(DateTime.now());
+  }
+
+  static String to12Hour(String time24) {
+    final parts = time24.split(':');
+    if (parts.length < 2) return time24;
+    int hour = int.parse(parts[0]);
+    final minute = parts[1];
+    final period = hour >= 12 ? 'PM' : 'AM';
+    if (hour == 0) hour = 12;
+    if (hour > 12) hour -= 12;
+    return '$hour:$minute $period';
   }
 
   List<PrayerItem> toList() => [

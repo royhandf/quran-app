@@ -1,20 +1,73 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/services/location_service.dart';
+import '../../../data/local/hive_service.dart';
 import '../../../data/repositories/prayer_repository.dart';
 import 'prayer_state.dart';
 
 class PrayerCubit extends Cubit<PrayerState> {
   final PrayerRepository _repository;
-  PrayerCubit(this._repository) : super(PrayerInitial());
+  final LocationService _locationService;
+  final HiveService _hiveService;
 
-  Future<void> loadPrayerTimes({
-    double lat = -6.2088,
-    double lng = 106.8456,
-  }) async {
+  PrayerCubit(this._repository, this._locationService, this._hiveService)
+    : super(PrayerInitial());
+
+  Future<void> loadPrayerTimes() async {
     emit(PrayerLoading());
     try {
-      final prayerTime = await _repository.getPrayerTimes(lat, lng);
+      final position = await _locationService.getCurrentPosition();
+      final lat = position.latitude;
+      final lng = position.longitude;
+
+      final prayerTime = await _repository.getPrayerTimes(
+        lat,
+        lng,
+        method: _hiveService.getPrayerMethod(),
+        school: _hiveService.getPrayerSchool(),
+        hijriAdjustment: _hiveService.getHijriAdjustment(),
+      );
       final qibla = await _repository.getQiblaDirection(lat, lng);
-      emit(PrayerLoaded(prayerTime: prayerTime, qiblaDirection: qibla));
+      final cityName = await _locationService.getCityName(lat, lng);
+
+      emit(
+        PrayerLoaded(
+          prayerTime: prayerTime,
+          qiblaDirection: qibla,
+          locationName: cityName,
+        ),
+      );
+    } catch (e) {
+      emit(PrayerError(e.toString()));
+    }
+  }
+
+  Future<void> loadPrayerTimesByDate(DateTime date) async {
+    emit(PrayerLoading());
+    try {
+      final position = await _locationService.getCurrentPosition();
+      final prayerTime = await _repository.getPrayerTimes(
+        position.latitude,
+        position.longitude,
+        date: date,
+        method: _hiveService.getPrayerMethod(),
+        school: _hiveService.getPrayerSchool(),
+        hijriAdjustment: _hiveService.getHijriAdjustment(),
+      );
+      final qibla = await _repository.getQiblaDirection(
+        position.latitude,
+        position.longitude,
+      );
+      final cityName = await _locationService.getCityName(
+        position.latitude,
+        position.longitude,
+      );
+      emit(
+        PrayerLoaded(
+          prayerTime: prayerTime,
+          qiblaDirection: qibla,
+          locationName: cityName,
+        ),
+      );
     } catch (e) {
       emit(PrayerError(e.toString()));
     }

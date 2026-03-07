@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+import 'package:quran_app/core/services/location_service.dart';
 import '../services/api_service.dart';
 import '../../data/repositories/quran_repository.dart';
 import '../../data/repositories/prayer_repository.dart';
@@ -21,9 +22,15 @@ void configureDependencies() {
     () => PrayerRepository(getIt<ApiService>()),
   );
 
+  getIt.registerLazySingleton<LocationService>(() => LocationService());
+
   getIt.registerFactory<QuranCubit>(() => QuranCubit(getIt<QuranRepository>()));
   getIt.registerFactory<PrayerCubit>(
-    () => PrayerCubit(getIt<PrayerRepository>()),
+    () => PrayerCubit(
+      getIt<PrayerRepository>(),
+      getIt<LocationService>(),
+      getIt<HiveService>(),
+    ),
   );
   getIt.registerFactory<BookmarkCubit>(
     () => BookmarkCubit(getIt<HiveService>()),

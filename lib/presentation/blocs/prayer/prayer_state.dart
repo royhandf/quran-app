@@ -14,9 +14,16 @@ class PrayerLoading extends PrayerState {}
 class PrayerLoaded extends PrayerState {
   final PrayerTime prayerTime;
   final double? qiblaDirection;
-  const PrayerLoaded({required this.prayerTime, this.qiblaDirection});
+  final String locationName;
+
+  const PrayerLoaded({
+    required this.prayerTime,
+    this.qiblaDirection,
+    this.locationName = '',
+  });
+
   @override
-  List<Object?> get props => [prayerTime, qiblaDirection];
+  List<Object?> get props => [prayerTime, qiblaDirection, locationName];
 }
 
 class PrayerError extends PrayerState {
