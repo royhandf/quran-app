@@ -265,7 +265,7 @@ class _SurahListScreenState extends State<SurahListScreen>
                                 ..loadVerses(surah),
                           child: SurahDetailScreen(
                             surah: surah,
-                            allSurahs: state.surahs,
+                            allSurahs: context.read<QuranCubit>().allSurahs,
                           ),
                         ),
                       ),
