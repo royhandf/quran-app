@@ -44,6 +44,17 @@ class QuranCubit extends Cubit<QuranState> {
     }
   }
 
+  Future<void> downloadSurahSilent(int surahId) async {
+    await _repository.downloadSurah(surahId);
+  }
+
+  void refreshDownloadStatus() {
+    if (_allSurahs.isNotEmpty) {
+      final downloadedIds = _repository.getDownloadedSurahIds();
+      emit(SurahsLoaded(_allSurahs, downloadedIds: downloadedIds));
+    }
+  }
+
   Future<void> deleteSurah(int surahId) async {
     await _repository.deleteSurah(surahId);
     final downloadedIds = _repository.getDownloadedSurahIds();

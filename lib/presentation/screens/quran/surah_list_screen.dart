@@ -263,10 +263,16 @@ class _SurahListScreenState extends State<SurahListScreen>
                           create: (_) =>
                               QuranCubit(context.read<QuranCubit>().repository)
                                 ..loadVerses(surah),
-                          child: SurahDetailScreen(surah: surah),
+                          child: SurahDetailScreen(
+                            surah: surah,
+                            allSurahs: state.surahs,
+                          ),
                         ),
                       ),
-                    );
+                    ).then((_) {
+                      if (!context.mounted) return;
+                      context.read<QuranCubit>().refreshDownloadStatus();
+                    });
                   },
                 ),
               );
@@ -418,10 +424,14 @@ class _SurahListScreenState extends State<SurahListScreen>
                           child: SurahDetailScreen(
                             surah: surah,
                             initialAyah: bm.ayahNumber,
+                            allSurahs: context.read<QuranCubit>().allSurahs,
                           ),
                         ),
                       ),
-                    );
+                    ).then((_) {
+                      if (!context.mounted) return;
+                      context.read<QuranCubit>().refreshDownloadStatus();
+                    });
                   }
                 },
               );
