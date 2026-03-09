@@ -78,7 +78,6 @@ class _SurahListScreenState extends State<SurahListScreen>
                 ),
                 onChanged: (query) {
                   context.read<QuranCubit>().searchSurahs(query);
-                  // Auto pindah ke tab SURAH kalau lagi di tab lain
                   if (_tabController.index != 0) {
                     _tabController.animateTo(0);
                   }
@@ -404,6 +403,27 @@ class _SurahListScreenState extends State<SurahListScreen>
                     ayahText: bm.ayahText,
                   ),
                 ),
+                onTap: () {
+                  final surah = context.read<QuranCubit>().findSurahById(
+                    bm.surahId,
+                  );
+                  if (surah != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => BlocProvider(
+                          create: (_) =>
+                              QuranCubit(context.read<QuranCubit>().repository)
+                                ..loadVerses(surah),
+                          child: SurahDetailScreen(
+                            surah: surah,
+                            initialAyah: bm.ayahNumber,
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+                },
               );
             },
           );
