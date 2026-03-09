@@ -21,6 +21,7 @@ class _SurahListScreenState extends State<SurahListScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _searchController = TextEditingController();
+  bool _isSearching = false;
 
   @override
   void initState() {
@@ -63,33 +64,64 @@ class _SurahListScreenState extends State<SurahListScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primary.withValues(alpha: 0.2),
+        title: _isSearching
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                style: AppTextStyles.bodyMedium(context),
+                decoration: InputDecoration(
+                  hintText: 'Cari surah...',
+                  hintStyle: AppTextStyles.bodyMedium(
+                    context,
+                  ).copyWith(color: AppColors.textSecondary(context)),
+                  border: InputBorder.none,
+                ),
+                onChanged: (query) {
+                  context.read<QuranCubit>().searchSurahs(query);
+                  // Auto pindah ke tab SURAH kalau lagi di tab lain
+                  if (_tabController.index != 0) {
+                    _tabController.animateTo(0);
+                  }
+                },
+              )
+            : Row(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.primary.withValues(alpha: 0.2),
+                    ),
+                    child: const Icon(
+                      Icons.mosque,
+                      color: AppColors.primary,
+                      size: 18,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      "Baca Qur'an",
+                      style: AppTextStyles.headingSmall(context),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
-              child: const Icon(
-                Icons.mosque,
-                color: AppColors.primary,
-                size: 18,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                "Baca Qur'an",
-                style: AppTextStyles.headingSmall(context),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
         actions: [
-          IconButton(icon: const Icon(Icons.search), onPressed: () {}),
+          IconButton(
+            icon: Icon(_isSearching ? Icons.close : Icons.search),
+            onPressed: () {
+              setState(() {
+                _isSearching = !_isSearching;
+                if (!_isSearching) {
+                  _searchController.clear();
+                  context.read<QuranCubit>().searchSurahs('');
+                }
+              });
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.format_color_text),
             onPressed: () {},

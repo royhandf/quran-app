@@ -9,6 +9,16 @@ class QuranCubit extends Cubit<QuranState> {
   QuranRepository get repository => _repository;
   List<Surah> _allSurahs = [];
 
+  List<Surah> get allSurahs => _allSurahs;
+
+  Surah? findSurahById(int id) {
+    try {
+      return _allSurahs.firstWhere((s) => s.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
   QuranCubit(this._repository) : super(QuranInitial());
 
   Future<void> loadSurahs() async {
