@@ -18,9 +18,11 @@ class Ayah extends Equatable {
       id: json['id'],
       verseNumber: json['verse_number'],
       textArabic: json['text_uthmani'] ?? json['text_imlaei'] ?? '',
-      textTranslation: json['translations']?.isNotEmpty == true
-          ? json['translations'][0]['text']
-          : json['text_translation'],
+      textTranslation: _cleanHtml(
+        json['translations']?.isNotEmpty == true
+            ? json['translations'][0]['text']
+            : json['text_translation'],
+      ),
     );
   }
 
@@ -33,4 +35,11 @@ class Ayah extends Equatable {
 
   @override
   List<Object?> get props => [id, verseNumber];
+
+  static String? _cleanHtml(String? text) {
+    if (text == null) return null;
+    var cleaned = text.replaceAll(RegExp(r'<sup[^>]*>.*?</sup>'), '');
+    cleaned = cleaned.replaceAll(RegExp(r'<[^>]*>'), '');
+    return cleaned.trim();
+  }
 }
