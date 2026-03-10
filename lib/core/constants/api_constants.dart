@@ -1,4 +1,9 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class ApiConstants {
-  static const String quranBaseUrl = 'https://api.quran.com/api/v4';
-  static const String aladhanBaseUrl = 'https://api.aladhan.com/v1';
+  static String get quranBaseUrl => dotenv.env['QURAN_API_BASE_URL']!;
+
+  static String get aladhanBaseUrl => dotenv.env['ALADHAN_API_BASE_URL']!;
+
+  static String get audioCdnBaseUrl => dotenv.env['AUDIO_CDN_BASE_URL']!;
 }
