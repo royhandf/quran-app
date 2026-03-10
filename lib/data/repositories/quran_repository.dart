@@ -20,16 +20,19 @@ class QuranRepository {
     return chapters.map((json) => Surah.fromJson(json)).toList();
   }
 
-  Future<List<Ayah>> getVerses(int surahId) async {
+  Future<List<Ayah>> getVerses(int surahId, {int translatorId = 33}) async {
     final local = _hiveService.getVerses(surahId);
     if (local != null) {
       return local.map((json) => Ayah.fromJson(json)).toList();
     }
-    return _fetchVersesFromApi(surahId);
+    return _fetchVersesFromApi(surahId, translatorId: translatorId);
   }
 
-  Future<List<Ayah>> downloadSurah(int surahId) async {
-    final verses = await _fetchVersesFromApi(surahId);
+  Future<List<Ayah>> downloadSurah(int surahId, {int translatorId = 33}) async {
+    final verses = await _fetchVersesFromApi(
+      surahId,
+      translatorId: translatorId,
+    );
     final jsonList = verses.map((a) => a.toJson()).toList();
     await _hiveService.saveVerses(surahId, jsonList);
     return verses;
@@ -44,12 +47,15 @@ class QuranRepository {
 
   Set<int> getDownloadedSurahIds() => _hiveService.getDownloadedSurahIds();
 
-  Future<List<Ayah>> _fetchVersesFromApi(int surahId) async {
+  Future<List<Ayah>> _fetchVersesFromApi(
+    int surahId, {
+    int translatorId = 33,
+  }) async {
     final response = await _apiService.get(
       '${ApiConstants.quranBaseUrl}/verses/by_chapter/$surahId',
       params: {
         'language': 'id',
-        'translations': '33',
+        'translations': '$translatorId',
         'fields': 'text_uthmani,text_imlaei',
         'per_page': 300,
       },
@@ -66,17 +72,38 @@ class QuranRepository {
     return all.where((j) => seen.add(j.juzNumber)).toList();
   }
 
-  Future<List<Ayah>> getVersesByJuz(int juzNumber) async {
+  Future<List<Ayah>> getVersesByJuz(
+    int juzNumber, {
+    int translatorId = 33,
+  }) async {
     final response = await _apiService.get(
       '${ApiConstants.quranBaseUrl}/verses/by_juz/$juzNumber',
       params: {
         'language': 'id',
-        'translations': '33',
+        'translations': '$translatorId',
         'fields': 'text_uthmani,text_imlaei',
         'per_page': 300,
       },
     );
     final List verses = response.data['verses'];
     return verses.map((json) => Ayah.fromJson(json)).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> getIndonesianTranslations() async {
+    final response = await _apiService.get(
+      '${ApiConstants.quranBaseUrl}/resources/translations',
+      params: {'language': 'id'},
+    );
+    final List all = response.data['translations'];
+    return all
+        .where((t) => t['language_name'] == 'indonesian')
+        .map<Map<String, dynamic>>(
+          (t) => {
+            'id': t['id'] as int,
+            'name': t['author_name'] as String? ?? t['name'] as String,
+            'desc': t['name'] as String,
+          },
+        )
+        .toList();
   }
 }

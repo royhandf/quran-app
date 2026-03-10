@@ -10,6 +10,7 @@ import '../../blocs/bookmark/bookmark_cubit.dart';
 import '../../blocs/bookmark/bookmark_state.dart';
 import 'surah_detail_screen.dart';
 import 'juz_detail_screen.dart';
+import '../../blocs/settings/settings_cubit.dart';
 
 class SurahListScreen extends StatefulWidget {
   const SurahListScreen({super.key});
@@ -331,7 +332,13 @@ class _SurahListScreenState extends State<SurahListScreen>
                         builder: (_) => BlocProvider(
                           create: (_) =>
                               QuranCubit(context.read<QuranCubit>().repository)
-                                ..loadVersesByJuz(juz.juzNumber),
+                                ..loadVersesByJuz(
+                                  juz.juzNumber,
+                                  translatorId: context
+                                      .read<SettingsCubit>()
+                                      .state
+                                      .translatorId,
+                                ),
                           child: JuzDetailScreen(juzNumber: juz.juzNumber),
                         ),
                       ),
@@ -406,7 +413,13 @@ class _SurahListScreenState extends State<SurahListScreen>
                         builder: (_) => BlocProvider(
                           create: (_) =>
                               QuranCubit(context.read<QuranCubit>().repository)
-                                ..loadVerses(surah),
+                                ..loadVerses(
+                                  surah,
+                                  translatorId: context
+                                      .read<SettingsCubit>()
+                                      .state
+                                      .translatorId,
+                                ),
                           child: SurahDetailScreen(
                             surah: surah,
                             initialAyah: bm.ayahNumber,

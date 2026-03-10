@@ -4,6 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../blocs/settings/settings_cubit.dart';
 import '../../blocs/settings/settings_state.dart';
+import '../../blocs/quran/quran_cubit.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -164,7 +165,12 @@ class SettingsScreen extends StatelessWidget {
                   activeThumbColor: AppColors.primary,
                 ),
               ),
-              _tile(context, 'Penerjemah', settings.translator),
+              _tile(
+                context,
+                'Penerjemah',
+                settings.translator,
+                onTap: () => _showTranslatorDialog(context, cubit, settings),
+              ),
               _tile(
                 context,
                 'Ukuran Font Terjemahan',
@@ -428,6 +434,70 @@ class SettingsScreen extends StatelessWidget {
             },
           );
         }).toList(),
+      ),
+    );
+  }
+
+  void _showTranslatorDialog(
+    BuildContext context,
+    SettingsCubit cubit,
+    SettingsState settings,
+  ) {
+    final repo = context.read<QuranCubit>().repository;
+    showDialog(
+      context: context,
+      builder: (ctx) => FutureBuilder<List<Map<String, dynamic>>>(
+        future: repo.getIndonesianTranslations(),
+        builder: (ctx, snapshot) {
+          if (!snapshot.hasData) {
+            return const SimpleDialog(
+              title: Text('Pilih Penerjemah'),
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+              ],
+            );
+          }
+          if (snapshot.hasError) {
+            return SimpleDialog(
+              title: const Text('Pilih Penerjemah'),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text('Gagal memuat: ${snapshot.error}'),
+                ),
+              ],
+            );
+          }
+          final items = snapshot.data!;
+          return SimpleDialog(
+            title: const Text('Pilih Penerjemah'),
+            children: items.map((item) {
+              final isSelected = settings.translatorId == item['id'];
+              return ListTile(
+                leading: Icon(
+                  isSelected
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                  color: isSelected ? AppColors.primary : null,
+                ),
+                title: Text(
+                  item['desc'] as String,
+                  style: const TextStyle(fontSize: 12),
+                ),
+                onTap: () {
+                  cubit.setTranslator(
+                    item['desc'] as String,
+                    item['id'] as int,
+                  );
+                  Navigator.pop(ctx);
+                },
+              );
+            }).toList(),
+          );
+        },
       ),
     );
   }

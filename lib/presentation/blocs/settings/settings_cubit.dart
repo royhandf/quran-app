@@ -39,6 +39,7 @@ class SettingsCubit extends Cubit<SettingsState> {
         translationFontSize:
             (s['translationFontSize'] as num?)?.toDouble() ?? 14,
         translator: s['translator'] as String? ?? 'Kemenag-RI',
+        translatorId: s['translatorId'] as int? ?? 33,
         selectedReciterId: s['selectedReciterId'] as int? ?? 7,
       ),
     );
@@ -142,6 +143,12 @@ class SettingsCubit extends Cubit<SettingsState> {
   }
 
   // === Terjemahan ===
+  void setTranslator(String name, int id) {
+    _hiveService.saveSetting('translator', name);
+    _hiveService.saveSetting('translatorId', id);
+    emit(state.copyWith(translator: name, translatorId: id));
+  }
+
   void toggleTranslation(bool v) {
     _hiveService.saveSetting('showTranslation', v);
     emit(state.copyWith(showTranslation: v));

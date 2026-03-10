@@ -481,7 +481,10 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
       _isDownloaded = ids.contains(surah.id);
     });
     _scrollController.jumpTo(0);
-    context.read<QuranCubit>().loadVerses(surah);
+    context.read<QuranCubit>().loadVerses(
+      surah,
+      translatorId: context.read<SettingsCubit>().state.translatorId,
+    );
   }
 
   int? _highlightedAyah;

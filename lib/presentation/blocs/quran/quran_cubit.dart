@@ -61,10 +61,13 @@ class QuranCubit extends Cubit<QuranState> {
     emit(SurahsLoaded(_allSurahs, downloadedIds: downloadedIds));
   }
 
-  Future<void> loadVerses(Surah surah) async {
+  Future<void> loadVerses(Surah surah, {int translatorId = 33}) async {
     emit(QuranLoading());
     try {
-      final verses = await _repository.getVerses(surah.id);
+      final verses = await _repository.getVerses(
+        surah.id,
+        translatorId: translatorId,
+      );
       emit(VersesLoaded(surah: surah, verses: verses));
     } catch (e) {
       emit(QuranError(e.toString()));
@@ -92,10 +95,13 @@ class QuranCubit extends Cubit<QuranState> {
     }
   }
 
-  Future<void> loadVersesByJuz(int juzNumber) async {
+  Future<void> loadVersesByJuz(int juzNumber, {int translatorId = 33}) async {
     emit(QuranLoading());
     try {
-      final verses = await _repository.getVersesByJuz(juzNumber);
+      final verses = await _repository.getVersesByJuz(
+        juzNumber,
+        translatorId: translatorId,
+      );
       emit(JuzVersesLoaded(juzNumber: juzNumber, verses: verses));
     } catch (e) {
       emit(QuranError(e.toString()));
