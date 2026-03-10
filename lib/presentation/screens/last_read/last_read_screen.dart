@@ -4,167 +4,184 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../data/local/hive_service.dart';
 import '../../../core/di/injection.dart';
-import '../../blocs/bookmark/bookmark_cubit.dart';
-import '../../blocs/bookmark/bookmark_state.dart';
+import '../../blocs/quran/quran_cubit.dart';
+import '../quran/surah_detail_screen.dart';
 
-class LastReadScreen extends StatelessWidget {
+class LastReadScreen extends StatefulWidget {
   const LastReadScreen({super.key});
 
   @override
+  State<LastReadScreen> createState() => _LastReadScreenState();
+}
+
+class _LastReadScreenState extends State<LastReadScreen> {
+  Map<String, dynamic>? _lastRead;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLastRead();
+  }
+
+  void _loadLastRead() {
+    setState(() {
+      _lastRead = getIt<HiveService>().getLastRead();
+    });
+  }
+
+  void _clearLastRead() async {
+    await getIt<HiveService>().clearLastRead();
+    _loadLastRead();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Riwayat terakhir baca dihapus')),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final lastRead = getIt<HiveService>().getLastRead();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Terakhir Baca'), centerTitle: true),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      appBar: AppBar(
+        title: Row(
           children: [
-            // Last Read Card
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.primary, AppColors.primaryDark],
-                ),
-                borderRadius: BorderRadius.circular(16),
+            Flexible(
+              child: Text(
+                'Terakhir Baca',
+                style: AppTextStyles.headingSmall(context),
+                overflow: TextOverflow.ellipsis,
               ),
-              child: lastRead != null
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.menu_book,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Lanjutkan Membaca',
-                              style: AppTextStyles.bodySmall(
-                                context,
-                              ).copyWith(color: Colors.white70),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          lastRead['surahName'] ?? 'Al-Fatihah',
-                          style: AppTextStyles.headingMedium(
-                            context,
-                          ).copyWith(color: Colors.white),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Ayat ${lastRead['ayahNumber'] ?? 1}',
-                          style: AppTextStyles.bodyMedium(
-                            context,
-                          ).copyWith(color: Colors.white70),
-                        ),
-                        const SizedBox(height: 12),
-                        ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: AppColors.primary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text('Lanjut Baca'),
-                        ),
-                      ],
-                    )
-                  : Column(
-                      children: [
-                        const Icon(
-                          Icons.menu_book,
-                          color: Colors.white54,
-                          size: 40,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Belum ada riwayat bacaan',
-                          style: AppTextStyles.bodyMedium(
-                            context,
-                          ).copyWith(color: Colors.white70),
-                        ),
-                      ],
-                    ),
-            ),
-            const SizedBox(height: 24),
-
-            // Bookmark Section
-            Text('Bookmark', style: AppTextStyles.sectionHeader(context)),
-            const SizedBox(height: 12),
-            BlocBuilder<BookmarkCubit, BookmarkState>(
-              builder: (context, state) {
-                if (state is BookmarkLoaded) {
-                  if (state.bookmarks.isEmpty) {
-                    return Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(32),
-                      decoration: BoxDecoration(
-                        color: AppColors.card(context),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.bookmark_border,
-                            size: 48,
-                            color: AppColors.textSecondary(context),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Belum ada bookmark',
-                            style: AppTextStyles.bodyMedium(context),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                  return ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: state.bookmarks.length,
-                    itemBuilder: (context, i) {
-                      final bm = state.bookmarks[i];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        decoration: BoxDecoration(
-                          color: AppColors.card(context),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: ListTile(
-                          leading: const Icon(
-                            Icons.bookmark,
-                            color: AppColors.primary,
-                          ),
-                          title: Text(
-                            bm.surahName,
-                            style: AppTextStyles.bodyLarge(context),
-                          ),
-                          subtitle: Text(
-                            'Ayat ${bm.ayahNumber}',
-                            style: AppTextStyles.bodySmall(context),
-                          ),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () {},
-                        ),
-                      );
-                    },
-                  );
-                }
-                return const SizedBox();
-              },
             ),
           ],
         ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: _lastRead != null
+            ? Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () {
+                    final surahId = _lastRead!['surahId'] as int;
+                    final ayahNumber = _lastRead!['ayahNumber'] as int;
+                    final surah = context.read<QuranCubit>().findSurahById(
+                      surahId,
+                    );
+                    if (surah != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => BlocProvider(
+                            create: (_) => QuranCubit(
+                              context.read<QuranCubit>().repository,
+                            )..loadVerses(surah),
+                            child: SurahDetailScreen(
+                              surah: surah,
+                              initialAyah: ayahNumber,
+                              allSurahs: context.read<QuranCubit>().allSurahs,
+                            ),
+                          ),
+                        ),
+                      ).then((_) {
+                        if (!context.mounted) return;
+                        context.read<QuranCubit>().refreshDownloadStatus();
+                        _loadLastRead();
+                      });
+                    }
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: isDark ? Colors.white24 : Colors.black12,
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      color: isDark
+                          ? const Color(0xFF1E1E1E)
+                          : const Color(0xFFF9F9F9),
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      leading: const Icon(
+                        Icons.menu_book,
+                        color: AppColors.primary,
+                        size: 28,
+                      ),
+                      title: Text(
+                        _lastRead!['surahName'] ?? 'Al-Fatihah',
+                        style: AppTextStyles.bodyLarge(
+                          context,
+                        ).copyWith(fontWeight: FontWeight.w600),
+                      ),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: Text(
+                          'Ayat ${_lastRead!['ayahNumber'] ?? 1}',
+                          style: AppTextStyles.bodySmall(context),
+                        ),
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.red,
+                        ),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: const Text('Hapus Riwayat?'),
+                              content: const Text(
+                                'Anda yakin ingin menghapus data terakhir baca Anda?',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx),
+                                  child: const Text('Batal'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(ctx);
+                                    _clearLastRead();
+                                  },
+                                  child: const Text(
+                                    'Hapus',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            : Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.menu_book,
+                      color: AppColors.textSecondary(context),
+                      size: 64,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Belum ada riwayat bacaan',
+                      style: AppTextStyles.bodyMedium(
+                        context,
+                      ).copyWith(color: AppColors.textSecondary(context)),
+                    ),
+                  ],
+                ),
+              ),
       ),
     );
   }

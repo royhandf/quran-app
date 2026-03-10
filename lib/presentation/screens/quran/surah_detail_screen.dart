@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import '../../../core/utils/arabic_utils.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../data/models/surah.dart';
+import '../../../data/local/hive_service.dart';
 import '../../blocs/quran/quran_cubit.dart';
 import '../../blocs/quran/quran_state.dart';
 import '../../blocs/bookmark/bookmark_cubit.dart';
@@ -188,13 +190,24 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                             () => GlobalKey(),
                           );
 
-                          return Container(
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 500),
                             key: _ayahKeys[ayah.verseNumber],
                             margin: const EdgeInsets.only(bottom: 16),
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: AppColors.card(context),
+                              color: _highlightedAyah == ayah.verseNumber
+                                  ? AppColors.primary.withValues(alpha: 0.15)
+                                  : AppColors.card(context),
                               borderRadius: BorderRadius.circular(12),
+                              border: _highlightedAyah == ayah.verseNumber
+                                  ? Border.all(
+                                      color: AppColors.primary.withValues(
+                                        alpha: 0.5,
+                                      ),
+                                      width: 1.5,
+                                    )
+                                  : null,
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -222,6 +235,35 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                                       ),
                                     ),
                                     const Spacer(),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.library_add_check_outlined,
+                                      ),
+                                      tooltip: 'Tandai Terakhir Baca',
+                                      onPressed: () async {
+                                        await GetIt.I<HiveService>()
+                                            .saveLastRead(
+                                              surahId: _currentSurah.id,
+                                              surahName:
+                                                  _currentSurah.nameSimple,
+                                              ayahNumber: ayah.verseNumber,
+                                            );
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                'Ayat ${ayah.verseNumber} ditandai sebagai terakhir baca',
+                                              ),
+                                              duration: const Duration(
+                                                seconds: 2,
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                    ),
                                     IconButton(
                                       icon: Icon(
                                         isBookmarked
@@ -421,6 +463,8 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
     context.read<QuranCubit>().loadVerses(surah);
   }
 
+  int? _highlightedAyah;
+
   void _scrollToAyah(int ayahNumber) {
     Future.delayed(const Duration(milliseconds: 300), () {
       final key = _ayahKeys[ayahNumber];
@@ -430,14 +474,47 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
           duration: const Duration(milliseconds: 400),
           curve: Curves.easeInOut,
           alignment: 0.1,
-        );
+        ).then((_) => _highlightAyah(ayahNumber));
       } else {
-        final estimatedOffset = 150.0 + (ayahNumber - 1) * 250.0;
-        _scrollController.animateTo(
-          estimatedOffset.clamp(0, _scrollController.position.maxScrollExtent),
-          duration: const Duration(milliseconds: 400),
-          curve: Curves.easeInOut,
-        );
+        final estimatedOffset = 150.0 + (ayahNumber - 1) * 200.0;
+        _scrollController
+            .animateTo(
+              estimatedOffset.clamp(
+                0.0,
+                _scrollController.position.maxScrollExtent,
+              ),
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeInOut,
+            )
+            .then((_) {
+              Future.delayed(const Duration(milliseconds: 100), () {
+                final newKey = _ayahKeys[ayahNumber];
+                if (newKey?.currentContext != null) {
+                  Scrollable.ensureVisible(
+                    newKey!.currentContext!,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    alignment: 0.1,
+                  ).then((_) => _highlightAyah(ayahNumber));
+                } else {
+                  _highlightAyah(ayahNumber);
+                }
+              });
+            });
+      }
+    });
+  }
+
+  void _highlightAyah(int ayahNumber) {
+    if (!mounted) return;
+    setState(() {
+      _highlightedAyah = ayahNumber;
+    });
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted && _highlightedAyah == ayahNumber) {
+        setState(() {
+          _highlightedAyah = null;
+        });
       }
     });
   }

@@ -52,6 +52,10 @@ class HiveService {
     });
   }
 
+  Future<void> clearLastRead() async {
+    await _settingsBox.delete(lastReadKey);
+  }
+
   Future<void> saveVerses(
     int surahId,
     List<Map<String, dynamic>> verses,

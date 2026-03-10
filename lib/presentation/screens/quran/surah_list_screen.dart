@@ -85,20 +85,6 @@ class _SurahListScreenState extends State<SurahListScreen>
               )
             : Row(
                 children: [
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.primary.withValues(alpha: 0.2),
-                    ),
-                    child: const Icon(
-                      Icons.mosque,
-                      color: AppColors.primary,
-                      size: 18,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
                   Flexible(
                     child: Text(
                       "Baca Qur'an",
