@@ -277,7 +277,7 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                                         surahId: _currentSurah.id,
                                         surahName: _currentSurah.nameSimple,
                                         ayahNumber: ayah.verseNumber,
-                                        ayahText: ayah.textArabic,
+                                        ayahText: ayah.textUthmani,
                                       ),
                                     ),
                                     IconButton(
@@ -289,14 +289,35 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                                   ],
                                 ),
                                 const SizedBox(height: 16),
-                                Text(
-                                  settings.showArabicNumbers
-                                      ? '${ayah.textArabic} \u06DD${toArabicNumeral(ayah.verseNumber)}'
-                                      : ayah.textArabic,
+                                RichText(
                                   textAlign: TextAlign.right,
-                                  style: AppTextStyles.arabicLarge(
-                                    context,
-                                    fontSize: settings.arabicFontSize,
+                                  textDirection: TextDirection.rtl,
+                                  text: TextSpan(
+                                    children: [
+                                      TextSpan(
+                                        text:
+                                            settings.arabicFontType == 'IndoPak'
+                                            ? ayah.textIndoPak
+                                            : ayah.textUthmani,
+                                        style: AppTextStyles.arabicLarge(
+                                          context,
+                                          fontSize: settings.arabicFontSize,
+                                          fontType: settings.arabicFontType,
+                                        ),
+                                      ),
+                                      if (settings.showArabicNumbers)
+                                        TextSpan(
+                                          text:
+                                              ' \u06DD${toArabicNumeral(ayah.verseNumber)} ',
+                                          style: AppTextStyles.arabicLarge(
+                                            context,
+                                            fontSize:
+                                                (settings.arabicFontSize * 0.75)
+                                                    .clamp(14, 24),
+                                            fontType: settings.arabicFontType,
+                                          ).copyWith(color: AppColors.primary),
+                                        ),
+                                    ],
                                   ),
                                 ),
                                 if (settings.showLatin) ...[

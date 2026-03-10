@@ -65,11 +65,14 @@ class JuzDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        ayah.textArabic,
+                        settings.arabicFontType == 'IndoPak'
+                            ? ayah.textIndoPak
+                            : ayah.textUthmani,
                         textAlign: TextAlign.right,
                         style: AppTextStyles.arabicLarge(
                           context,
                           fontSize: settings.arabicFontSize,
+                          fontType: settings.arabicFontType,
                         ),
                       ),
                       if (settings.showLatin) ...[

@@ -123,7 +123,10 @@ class _SearchScreenState extends State<SearchScreen> {
                       MaterialPageRoute(
                         builder: (_) => BlocProvider.value(
                           value: context.read<QuranCubit>(),
-                          child: SurahDetailScreen(surah: s),
+                          child: SurahDetailScreen(
+                            surah: s,
+                            allSurahs: context.read<QuranCubit>().allSurahs,
+                          ),
                         ),
                       ),
                     );

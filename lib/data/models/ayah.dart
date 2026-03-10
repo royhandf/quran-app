@@ -3,21 +3,26 @@ import 'package:equatable/equatable.dart';
 class Ayah extends Equatable {
   final int id;
   final int verseNumber;
-  final String textArabic;
+  final String textUthmani;
+  final String textIndoPak;
   final String? textTranslation;
 
   const Ayah({
     required this.id,
     required this.verseNumber,
-    required this.textArabic,
+    required this.textUthmani,
+    required this.textIndoPak,
     this.textTranslation,
   });
 
   factory Ayah.fromJson(Map<String, dynamic> json) {
+    final uthmani = json['text_uthmani'] as String? ?? '';
+    final indoPak = json['text_imlaei'] as String? ?? uthmani;
     return Ayah(
       id: json['id'],
       verseNumber: json['verse_number'],
-      textArabic: json['text_uthmani'] ?? json['text_imlaei'] ?? '',
+      textUthmani: uthmani,
+      textIndoPak: indoPak,
       textTranslation: _cleanHtml(
         json['translations']?.isNotEmpty == true
             ? json['translations'][0]['text']
@@ -29,7 +34,8 @@ class Ayah extends Equatable {
   Map<String, dynamic> toJson() => {
     'id': id,
     'verse_number': verseNumber,
-    'text_uthmani': textArabic,
+    'text_uthmani': textUthmani,
+    'text_imlaei': textIndoPak,
     'text_translation': textTranslation,
   };
 

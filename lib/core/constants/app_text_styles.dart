@@ -34,21 +34,27 @@ class AppTextStyles {
     color: AppColors.textSecondary(context),
   );
 
-  static TextStyle arabicLarge(BuildContext context, {double? fontSize}) =>
-      TextStyle(
-        fontFamily: 'Amiri',
-        fontSize: fontSize ?? 28,
-        height: 2.0,
-        color: AppColors.textPrimary(context),
-      );
+  static TextStyle arabicLarge(
+    BuildContext context, {
+    double? fontSize,
+    String fontType = 'Uthmani',
+  }) => TextStyle(
+    fontFamily: fontType == 'IndoPak' ? 'Lateef' : 'ScheherazadeNew',
+    fontSize: fontSize ?? 28,
+    height: 2.0,
+    color: AppColors.textPrimary(context),
+  );
 
-  static TextStyle arabicMedium(BuildContext context, {double? fontSize}) =>
-      TextStyle(
-        fontFamily: 'Amiri',
-        fontSize: fontSize ?? 22,
-        height: 1.8,
-        color: AppColors.textPrimary(context),
-      );
+  static TextStyle arabicMedium(
+    BuildContext context, {
+    double? fontSize,
+    String fontType = 'Uthmani',
+  }) => TextStyle(
+    fontFamily: fontType == 'IndoPak' ? 'Lateef' : 'ScheherazadeNew',
+    fontSize: fontSize ?? 22,
+    height: 1.8,
+    color: AppColors.textPrimary(context),
+  );
 
   static TextStyle sectionHeader(BuildContext context) => GoogleFonts.poppins(
     fontSize: 14,
