@@ -8,9 +8,10 @@ import '../../blocs/quran/quran_cubit.dart';
 import '../../blocs/quran/quran_state.dart';
 import '../../blocs/bookmark/bookmark_cubit.dart';
 import '../../blocs/bookmark/bookmark_state.dart';
+import '../../blocs/settings/settings_cubit.dart';
+import '../../blocs/audio/audio_cubit.dart';
 import 'surah_detail_screen.dart';
 import 'juz_detail_screen.dart';
-import '../../blocs/settings/settings_cubit.dart';
 
 class SurahListScreen extends StatefulWidget {
   const SurahListScreen({super.key});
@@ -246,10 +247,26 @@ class _SurahListScreenState extends State<SurahListScreen>
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => BlocProvider(
-                          create: (_) =>
-                              QuranCubit(context.read<QuranCubit>().repository)
-                                ..loadVerses(surah),
+                        builder: (_) => MultiBlocProvider(
+                          providers: [
+                            BlocProvider(
+                              create: (_) =>
+                                  QuranCubit(
+                                    context.read<QuranCubit>().repository,
+                                  )..loadVerses(
+                                    surah,
+                                    translatorId: context
+                                        .read<SettingsCubit>()
+                                        .state
+                                        .translatorId,
+                                  ),
+                            ),
+                            BlocProvider(
+                              create: (_) => AudioCubit(
+                                context.read<QuranCubit>().repository,
+                              ),
+                            ),
+                          ],
                           child: SurahDetailScreen(
                             surah: surah,
                             allSurahs: context.read<QuranCubit>().allSurahs,
@@ -410,16 +427,26 @@ class _SurahListScreenState extends State<SurahListScreen>
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => BlocProvider(
-                          create: (_) =>
-                              QuranCubit(context.read<QuranCubit>().repository)
-                                ..loadVerses(
-                                  surah,
-                                  translatorId: context
-                                      .read<SettingsCubit>()
-                                      .state
-                                      .translatorId,
-                                ),
+                        builder: (_) => MultiBlocProvider(
+                          providers: [
+                            BlocProvider(
+                              create: (_) =>
+                                  QuranCubit(
+                                    context.read<QuranCubit>().repository,
+                                  )..loadVerses(
+                                    surah,
+                                    translatorId: context
+                                        .read<SettingsCubit>()
+                                        .state
+                                        .translatorId,
+                                  ),
+                            ),
+                            BlocProvider(
+                              create: (_) => AudioCubit(
+                                context.read<QuranCubit>().repository,
+                              ),
+                            ),
+                          ],
                           child: SurahDetailScreen(
                             surah: surah,
                             initialAyah: bm.ayahNumber,

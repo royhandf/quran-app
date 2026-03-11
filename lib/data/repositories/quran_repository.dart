@@ -106,4 +106,21 @@ class QuranRepository {
         )
         .toList();
   }
+
+  /// Returns Map<verseKey, fullAudioUrl>
+  /// e.g. { '1:1': 'https://audio.qurancdn.com/Alafasy/mp3/001001.mp3' }
+  Future<Map<String, String>> getChapterAudioFiles(
+    int surahId,
+    int reciterId,
+  ) async {
+    final response = await _apiService.get(
+      '${ApiConstants.quranBaseUrl}/recitations/$reciterId/by_chapter/$surahId',
+      params: {'per_page': 300},
+    );
+    final List files = response.data['audio_files'];
+    return {
+      for (final f in files)
+        f['verse_key'] as String: '${ApiConstants.audioCdnBaseUrl}/${f['url']}',
+    };
+  }
 }
