@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../data/repositories/quran_repository.dart';
+import '../../../core/di/injection.dart';
+import '../../blocs/audio/audio_cubit.dart';
 import '../../blocs/quran/quran_cubit.dart';
 import '../../blocs/quran/quran_state.dart';
+import '../../blocs/settings/settings_cubit.dart';
 import '../quran/surah_detail_screen.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -117,12 +121,31 @@ class _SearchScreenState extends State<SearchScreen> {
                     style: AppTextStyles.arabicMedium(context),
                   ),
                   onTap: () {
-                    context.read<QuranCubit>().loadVerses(s);
+                    final translatorId = context
+                        .read<SettingsCubit>()
+                        .state
+                        .translatorId;
+                    final reciterId = context
+                        .read<SettingsCubit>()
+                        .state
+                        .selectedReciterId;
+                    final repo = getIt<QuranRepository>();
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => BlocProvider.value(
-                          value: context.read<QuranCubit>(),
+                        builder: (_) => MultiBlocProvider(
+                          providers: [
+                            BlocProvider(
+                              create: (_) => QuranCubit(
+                                context.read<QuranCubit>().repository,
+                              )..loadVerses(s, translatorId: translatorId),
+                            ),
+                            BlocProvider(
+                              create: (_) =>
+                                  AudioCubit(repo)
+                                    ..loadSurahAudio(s.id, reciterId),
+                            ),
+                          ],
                           child: SurahDetailScreen(
                             surah: s,
                             allSurahs: context.read<QuranCubit>().allSurahs,

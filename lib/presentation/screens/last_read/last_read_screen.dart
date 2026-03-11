@@ -3,8 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../data/local/hive_service.dart';
+import '../../../data/repositories/quran_repository.dart';
 import '../../../core/di/injection.dart';
+import '../../blocs/audio/audio_cubit.dart';
 import '../../blocs/quran/quran_cubit.dart';
+import '../../blocs/settings/settings_cubit.dart';
 import '../quran/surah_detail_screen.dart';
 
 class LastReadScreen extends StatefulWidget {
@@ -71,13 +74,35 @@ class _LastReadScreenState extends State<LastReadScreen> {
                       surahId,
                     );
                     if (surah != null) {
+                      final translatorId = context
+                          .read<SettingsCubit>()
+                          .state
+                          .translatorId;
+                      final reciterId = context
+                          .read<SettingsCubit>()
+                          .state
+                          .selectedReciterId;
+                      final repo = getIt<QuranRepository>();
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => BlocProvider(
-                            create: (_) => QuranCubit(
-                              context.read<QuranCubit>().repository,
-                            )..loadVerses(surah),
+                          builder: (_) => MultiBlocProvider(
+                            providers: [
+                              BlocProvider(
+                                create: (_) =>
+                                    QuranCubit(
+                                      context.read<QuranCubit>().repository,
+                                    )..loadVerses(
+                                      surah,
+                                      translatorId: translatorId,
+                                    ),
+                              ),
+                              BlocProvider(
+                                create: (_) =>
+                                    AudioCubit(repo)
+                                      ..loadSurahAudio(surah.id, reciterId),
+                              ),
+                            ],
                             child: SurahDetailScreen(
                               surah: surah,
                               initialAyah: ayahNumber,
