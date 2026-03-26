@@ -15,8 +15,12 @@ class SettingsCubit extends Cubit<SettingsState> {
   void _loadSettings() {
     final s = _hiveService.getAllSettings();
     final keepScreenOn = s['keepScreenOn'] as bool? ?? false;
+    final fullScreen = s['fullScreen'] as bool? ?? false;
 
     WakelockPlus.toggle(enable: keepScreenOn);
+    if (fullScreen) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    }
 
     emit(
       SettingsState(

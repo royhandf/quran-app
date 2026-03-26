@@ -7,6 +7,7 @@ class HiveService {
   static const String lastReadKey = 'last_read';
   static const String alarmBox = 'prayer_alarms';
   static const String versesBox = 'quran_verses';
+  static const String translationsCacheKey = 'translations_cache';
 
   static Future<void> init() async {
     await Hive.initFlutter();
@@ -86,6 +87,16 @@ class HiveService {
 
   Future<void> saveSetting(String key, dynamic value) async =>
       await _settingsBox.put(key, value);
+
+  List<Map<String, dynamic>>? getCachedTranslations() {
+    final data = _settingsBox.get(translationsCacheKey);
+    if (data == null) return null;
+    return (data as List).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  Future<void> saveTranslationsCache(List<Map<String, dynamic>> data) async {
+    await _settingsBox.put(translationsCacheKey, data);
+  }
 
   int getPrayerMethod() =>
       _settingsBox.get('prayerMethod', defaultValue: 20) as int;

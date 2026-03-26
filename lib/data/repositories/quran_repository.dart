@@ -90,12 +90,17 @@ class QuranRepository {
   }
 
   Future<List<Map<String, dynamic>>> getIndonesianTranslations() async {
+    // Cek cache lokal dulu
+    final cached = _hiveService.getCachedTranslations();
+    if (cached != null && cached.isNotEmpty) return cached;
+
+    // Fetch dari API kalau belum ada cache
     final response = await _apiService.get(
       '${ApiConstants.quranBaseUrl}/resources/translations',
       params: {'language': 'id'},
     );
     final List all = response.data['translations'];
-    return all
+    final result = all
         .where((t) => t['language_name'] == 'indonesian')
         .map<Map<String, dynamic>>(
           (t) => {
@@ -105,6 +110,10 @@ class QuranRepository {
           },
         )
         .toList();
+
+    // Simpan ke cache
+    await _hiveService.saveTranslationsCache(result);
+    return result;
   }
 
   /// Returns Map<verseKey, fullAudioUrl>
