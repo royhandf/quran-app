@@ -134,7 +134,7 @@ class _LastReadScreenState extends State<LastReadScreen> {
                         vertical: 8,
                       ),
                       leading: const Icon(
-                        Icons.menu_book,
+                        Icons.history,
                         color: AppColors.primary,
                         size: 28,
                       ),
@@ -193,7 +193,7 @@ class _LastReadScreenState extends State<LastReadScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      Icons.menu_book,
+                      Icons.history,
                       color: AppColors.textSecondary(context),
                       size: 64,
                     ),
