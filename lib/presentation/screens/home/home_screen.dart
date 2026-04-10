@@ -156,7 +156,7 @@ class _HomeScreenState extends State<HomeScreen>
               const SizedBox(height: 14),
               AnimatedBuilder(
                 animation: _shimmerCtrl,
-                builder: (_, __) {
+                builder: (_, _) {
                   return ShaderMask(
                     shaderCallback: (bounds) {
                       final dx = _shimmerCtrl.value * 3 - 1;
@@ -746,10 +746,11 @@ class _GeometricPatternPainter extends CustomPainter {
         center.dx + (r * 0.5) * math.cos((i * math.pi / 3) - math.pi / 6),
         center.dy + (r * 0.5) * math.sin((i * math.pi / 3) - math.pi / 6),
       );
-      if (i == 0)
+      if (i == 0) {
         hexPath.moveTo(pt.dx, pt.dy);
-      else
+      } else {
         hexPath.lineTo(pt.dx, pt.dy);
+      }
     }
     hexPath.close();
     canvas.drawPath(hexPath, paint);

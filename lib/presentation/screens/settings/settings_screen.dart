@@ -827,53 +827,70 @@ class _TajwidTile extends StatelessWidget {
       const Color(0xFFFFA726),
     ];
 
-    return ListTile(
-      leading: _IconBox(
-        icon: Icons.color_lens_outlined,
-        color: const Color(0xFF7986CB),
-      ),
-      title: Text(
-        'Tajwid Berwarna',
-        style: AppTextStyles.bodyMedium(
-          context,
-        ).copyWith(fontWeight: FontWeight.w500),
-      ),
-      subtitle: Padding(
-        padding: const EdgeInsets.only(top: 4),
-        child: Row(
+    return Opacity(
+      opacity: 0.5,
+      child: ListTile(
+        leading: _IconBox(
+          icon: Icons.color_lens_outlined,
+          color: const Color(0xFF7986CB),
+        ),
+        title: Row(
           children: [
-            ...colors.map(
-              (c) => Container(
-                width: 10,
-                height: 10,
-                margin: const EdgeInsets.only(right: 4),
-                decoration: BoxDecoration(
-                  color: settings.tajwidColored
-                      ? c
-                      : AppColors.textSecondary(context).withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(2),
+            Text(
+              'Tajwid Berwarna',
+              style: AppTextStyles.bodyMedium(
+                context,
+              ).copyWith(fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.3),
+                  width: 1,
                 ),
               ),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              settings.tajwidColored ? 'Aktif' : 'Nonaktif',
-              style: AppTextStyles.bodySmall(context).copyWith(
-                color: settings.tajwidColored
-                    ? AppColors.primary
-                    : AppColors.textSecondary(context),
+              child: Text(
+                'Segera Hadir',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                ),
               ),
             ),
           ],
         ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Row(
+            children: [
+              ...colors.map(
+                (c) => Container(
+                  width: 10,
+                  height: 10,
+                  margin: const EdgeInsets.only(right: 4),
+                  decoration: BoxDecoration(
+                    color: c.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        trailing: Icon(
+          Icons.chevron_right_rounded,
+          size: 18,
+          color: AppColors.textSecondary(context),
+        ),
+        onTap: null,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       ),
-      trailing: Icon(
-        Icons.chevron_right_rounded,
-        size: 18,
-        color: AppColors.textSecondary(context),
-      ),
-      onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
     );
   }
 }
