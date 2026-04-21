@@ -421,10 +421,11 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                                           ],
                                         ),
                                       ),
-                                      if (settings.showLatin) ...[
+                                      if (settings.showLatin &&
+                                          ayah.textTransliteration != null) ...[
                                         const SizedBox(height: 12),
                                         Text(
-                                          'Transliterasi ayat ${ayah.verseNumber}',
+                                          ayah.textTransliteration!,
                                           style: TextStyle(
                                             fontSize: settings.latinFontSize,
                                             fontStyle: FontStyle.italic,
