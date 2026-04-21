@@ -43,7 +43,7 @@ class SettingsState extends Equatable {
     this.translationFontSize = 14,
     this.translator = 'Kemenag-RI',
     this.translatorId = 33,
-    this.selectedReciterId = 7,
+    this.selectedReciterId = 5,
   });
 
   SettingsState copyWith({

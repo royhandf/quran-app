@@ -1,6 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../data/models/surah.dart';
-import '../../../data/models/juz.dart';
 import '../../../data/repositories/quran_repository.dart';
 import 'quran_state.dart';
 
@@ -64,45 +63,12 @@ class QuranCubit extends Cubit<QuranState> {
   Future<void> loadVerses(Surah surah, {int translatorId = 33}) async {
     emit(QuranLoading());
     try {
-      final verses = await _repository.getVerses(
-        surah.id,
-        translatorId: translatorId,
-      );
+      var verses = await _repository.getVerses(surah.id);
+      if (verses.isNotEmpty &&
+          verses.every((v) => v.textTransliteration == null)) {
+        verses = await _repository.downloadSurah(surah.id);
+      }
       emit(VersesLoaded(surah: surah, verses: verses));
-    } catch (e) {
-      emit(QuranError(e.toString()));
-    }
-  }
-
-  Future<void> loadJuzs() async {
-    emit(QuranLoading());
-    try {
-      final results = await Future.wait([
-        _repository.getJuzs(),
-        _allSurahs.isEmpty ? _repository.getSurahs() : Future.value(_allSurahs),
-      ]);
-
-      final juzs = results[0] as List<Juz>;
-      final surahs = results[1] as List<Surah>;
-
-      if (_allSurahs.isEmpty) _allSurahs = surahs;
-
-      final surahNames = {for (final s in surahs) s.id: s.nameSimple};
-
-      emit(JuzsLoaded(juzs: juzs, surahNames: surahNames));
-    } catch (e) {
-      emit(QuranError(e.toString()));
-    }
-  }
-
-  Future<void> loadVersesByJuz(int juzNumber, {int translatorId = 33}) async {
-    emit(QuranLoading());
-    try {
-      final verses = await _repository.getVersesByJuz(
-        juzNumber,
-        translatorId: translatorId,
-      );
-      emit(JuzVersesLoaded(juzNumber: juzNumber, verses: verses));
     } catch (e) {
       emit(QuranError(e.toString()));
     }

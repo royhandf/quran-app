@@ -11,7 +11,7 @@ import '../../blocs/bookmark/bookmark_state.dart';
 import '../../blocs/settings/settings_cubit.dart';
 import '../../blocs/audio/audio_cubit.dart';
 import 'surah_detail_screen.dart';
-import 'juz_detail_screen.dart';
+
 
 class SurahListScreen extends StatefulWidget {
   const SurahListScreen({super.key});
@@ -28,7 +28,7 @@ class _SurahListScreenState extends State<SurahListScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     context.read<QuranCubit>().loadSurahs();
   }
 
@@ -126,14 +126,13 @@ class _SurahListScreenState extends State<SurahListScreen>
           ),
           tabs: const [
             Tab(text: 'SURAH'),
-            Tab(text: 'JUZ'),
             Tab(text: 'BOOKMARK'),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [_buildSurahTab(), _buildJuzTab(), _buildBookmarkTab()],
+        children: [_buildSurahTab(), _buildBookmarkTab()],
       ),
     );
   }
@@ -288,88 +287,6 @@ class _SurahListScreenState extends State<SurahListScreen>
     );
   }
 
-  Widget _buildJuzTab() {
-    return BlocProvider(
-      create: (_) =>
-          QuranCubit(context.read<QuranCubit>().repository)..loadJuzs(),
-      child: BlocBuilder<QuranCubit, QuranState>(
-        builder: (context, state) {
-          if (state is QuranLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (state is QuranError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Error: ${state.message}'),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: () => context.read<QuranCubit>().loadJuzs(),
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
-            );
-          }
-          if (state is JuzsLoaded) {
-            return ListView.separated(
-              itemCount: state.juzs.length,
-              separatorBuilder: (_, _) => Divider(
-                height: 1,
-                indent: 70,
-                color: AppColors.dividerColor(context),
-              ),
-              itemBuilder: (context, index) {
-                final juz = state.juzs[index];
-                return ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 4,
-                  ),
-                  leading: _buildSurahNumber(context, juz.juzNumber),
-                  title: Text(
-                    'Juz ${juz.juzNumber}',
-                    style: AppTextStyles.bodyLarge(
-                      context,
-                    ).copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  subtitle: Text(
-                    '${juz.getRangeText(state.surahNames)} • ${juz.versesCount} Ayat',
-                    style: AppTextStyles.bodySmall(context),
-                  ),
-                  trailing: Icon(
-                    Icons.chevron_right,
-                    color: AppColors.textSecondary(context),
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => BlocProvider(
-                          create: (_) =>
-                              QuranCubit(context.read<QuranCubit>().repository)
-                                ..loadVersesByJuz(
-                                  juz.juzNumber,
-                                  translatorId: context
-                                      .read<SettingsCubit>()
-                                      .state
-                                      .translatorId,
-                                ),
-                          child: JuzDetailScreen(juzNumber: juz.juzNumber),
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            );
-          }
-          return const SizedBox();
-        },
-      ),
-    );
-  }
 
   Widget _buildBookmarkTab() {
     return BlocBuilder<BookmarkCubit, BookmarkState>(

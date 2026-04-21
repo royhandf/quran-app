@@ -4,24 +4,17 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../blocs/settings/settings_cubit.dart';
 import '../../blocs/settings/settings_state.dart';
-import '../../blocs/quran/quran_cubit.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   static const List<Map<String, dynamic>> _reciters = [
-    {'id': 7, 'name': 'Mishari Rashid al-Afasy'},
-    {'id': 2, 'name': 'AbdulBaset AbdulSamad (Murattal)'},
-    {'id': 1, 'name': 'AbdulBaset AbdulSamad (Mujawwad)'},
-    {'id': 3, 'name': 'Abdur-Rahman as-Sudais'},
-    {'id': 4, 'name': 'Abu Bakr al-Shatri'},
-    {'id': 5, 'name': 'Hani ar-Rifai'},
-    {'id': 6, 'name': 'Mahmoud Khalil Al-Husary'},
-    {'id': 12, 'name': 'Mahmoud Khalil Al-Husary (Muallim)'},
-    {'id': 9, 'name': 'Mohamed Siddiq al-Minshawi (Murattal)'},
-    {'id': 8, 'name': 'Mohamed Siddiq al-Minshawi (Mujawwad)'},
-    {'id': 10, 'name': "Sa'ud ash-Shuraym"},
-    {'id': 11, 'name': 'Mohamed al-Tablawi'},
+    {'id': 5, 'name': 'Misyari Rasyid Al-Afasi'},
+    {'id': 1, 'name': 'Abdullah Al-Juhany'},
+    {'id': 2, 'name': 'Abdul-Muhsin Al-Qasim'},
+    {'id': 3, 'name': 'Abdurrahman as-Sudais'},
+    {'id': 4, 'name': 'Ibrahim Al-Dossari'},
+    {'id': 6, 'name': 'Yasser Al-Dosari'},
   ];
 
   String _getReciterName(int id) {
@@ -195,17 +188,6 @@ class SettingsScreen extends StatelessWidget {
                     subtitle: 'Terjemahan Bahasa Indonesia',
                     value: settings.showTranslation,
                     onChanged: cubit.toggleTranslation,
-                  ),
-                  _Divider(),
-                  _SelectTile(
-                    icon: Icons.person_outline_rounded,
-                    iconColor: const Color(0xFFD81B60),
-                    title: 'Penerjemah',
-                    value: settings.translator,
-                    enabled: settings.showTranslation,
-                    onTap: settings.showTranslation
-                        ? () => _showTranslatorDialog(context, cubit, settings)
-                        : null,
                   ),
                   _Divider(),
                   _SelectTile(
@@ -587,56 +569,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showTranslatorDialog(
-    BuildContext context,
-    SettingsCubit cubit,
-    SettingsState settings,
-  ) {
-    final repo = context.read<QuranCubit>().repository;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (ctx) => _BottomSheet(
-        title: 'Pilih Penerjemah',
-        child: FutureBuilder<List<Map<String, dynamic>>>(
-          future: repo.getIndonesianTranslations(),
-          builder: (ctx, snapshot) {
-            if (!snapshot.hasData) {
-              return const Padding(
-                padding: EdgeInsets.symmetric(vertical: 32),
-                child: Center(child: CircularProgressIndicator()),
-              );
-            }
-            if (snapshot.hasError) {
-              return Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text('Gagal memuat: ${snapshot.error}'),
-              );
-            }
-            final items = snapshot.data!;
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: items.map((item) {
-                final isSelected = settings.translatorId == item['id'];
-                return _OptionTile(
-                  label: item['desc'] as String,
-                  isSelected: isSelected,
-                  onTap: () {
-                    cubit.setTranslator(
-                      item['desc'] as String,
-                      item['id'] as int,
-                    );
-                    Navigator.pop(ctx);
-                  },
-                );
-              }).toList(),
-            );
-          },
-        ),
-      ),
-    );
-  }
+
 
   void _showOptionDialog({
     required BuildContext context,

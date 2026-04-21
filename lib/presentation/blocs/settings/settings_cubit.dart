@@ -44,7 +44,7 @@ class SettingsCubit extends Cubit<SettingsState> {
             (s['translationFontSize'] as num?)?.toDouble() ?? 14,
         translator: s['translator'] as String? ?? 'Kemenag-RI',
         translatorId: s['translatorId'] as int? ?? 33,
-        selectedReciterId: s['selectedReciterId'] as int? ?? 7,
+        selectedReciterId: ((s['selectedReciterId'] as int?) ?? 5).clamp(1, 6),
       ),
     );
   }

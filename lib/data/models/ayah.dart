@@ -6,6 +6,7 @@ class Ayah extends Equatable {
   final String textUthmani;
   final String textIndoPak;
   final String? textTranslation;
+  final String? textTransliteration;
 
   const Ayah({
     required this.id,
@@ -13,6 +14,7 @@ class Ayah extends Equatable {
     required this.textUthmani,
     required this.textIndoPak,
     this.textTranslation,
+    this.textTransliteration,
   });
 
   factory Ayah.fromJson(Map<String, dynamic> json) {
@@ -28,6 +30,19 @@ class Ayah extends Equatable {
             ? json['translations'][0]['text']
             : json['text_translation'],
       ),
+      textTransliteration: json['text_transliteration'] as String?,
+    );
+  }
+
+  factory Ayah.fromEquranJson(Map<String, dynamic> json) {
+    final teksArab = json['teksArab'] as String? ?? '';
+    return Ayah(
+      id: json['nomorAyat'] as int,
+      verseNumber: json['nomorAyat'] as int,
+      textUthmani: teksArab,
+      textIndoPak: teksArab,
+      textTranslation: json['teksIndonesia'] as String?,
+      textTransliteration: json['teksLatin'] as String?,
     );
   }
 
@@ -37,6 +52,7 @@ class Ayah extends Equatable {
     'text_uthmani': textUthmani,
     'text_imlaei': textIndoPak,
     'text_translation': textTranslation,
+    'text_transliteration': textTransliteration,
   };
 
   @override

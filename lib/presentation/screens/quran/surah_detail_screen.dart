@@ -12,6 +12,7 @@ import '../../blocs/quran/quran_state.dart';
 import '../../blocs/bookmark/bookmark_cubit.dart';
 import '../../blocs/bookmark/bookmark_state.dart';
 import '../../blocs/settings/settings_cubit.dart';
+import '../../blocs/settings/settings_state.dart';
 import '../../blocs/audio/audio_cubit.dart';
 import '../../blocs/audio/audio_state.dart';
 import '../settings/settings_screen.dart';
@@ -52,10 +53,11 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
   }
 
   void _loadAudio() {
-    final settings = context.read<SettingsCubit>().state;
+    final reciterId =
+        context.read<SettingsCubit>().state.selectedReciterId;
     context.read<AudioCubit>().loadSurahAudio(
       _currentSurah.id,
-      settings.selectedReciterId,
+      reciterId,
     );
   }
 
@@ -77,7 +79,11 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsCubit>().state;
 
-    return Scaffold(
+    return BlocListener<SettingsCubit, SettingsState>(
+      listenWhen: (prev, curr) =>
+          prev.selectedReciterId != curr.selectedReciterId,
+      listener: (context, _) => _loadAudio(),
+      child: Scaffold(
       appBar: AppBar(
         centerTitle: true,
         backgroundColor: AppColors.background(context),
@@ -469,7 +475,8 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 
   void _toggleAutoScroll() {
@@ -675,6 +682,7 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
       surah,
       translatorId: context.read<SettingsCubit>().state.translatorId,
     );
+    _loadAudio();
   }
 
   int? _highlightedAyah;

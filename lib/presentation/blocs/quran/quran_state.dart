@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import '../../../data/models/juz.dart';
 import '../../../data/models/surah.dart';
 import '../../../data/models/ayah.dart';
 
@@ -35,22 +34,4 @@ class QuranError extends QuranState {
   const QuranError(this.message);
   @override
   List<Object?> get props => [message];
-}
-
-class JuzsLoaded extends QuranState {
-  final List<Juz> juzs;
-  final Map<int, String> surahNames;
-
-  const JuzsLoaded({required this.juzs, required this.surahNames});
-  @override
-  List<Object?> get props => [juzs, surahNames];
-}
-
-class JuzVersesLoaded extends QuranState {
-  final int juzNumber;
-  final List<Ayah> verses;
-
-  const JuzVersesLoaded({required this.juzNumber, required this.verses});
-  @override
-  List<Object?> get props => [juzNumber, verses];
 }
