@@ -28,6 +28,18 @@ class Surah extends Equatable {
     );
   }
 
+  factory Surah.fromEquranJson(Map<String, dynamic> json) {
+    final tempatTurun = (json['tempatTurun'] as String? ?? '').toLowerCase();
+    return Surah(
+      id: json['nomor'],
+      nameArabic: json['nama'],
+      nameSimple: json['namaLatin'],
+      translatedName: json['arti'],
+      versesCount: json['jumlahAyat'],
+      revelationPlace: tempatTurun == 'mekah' ? 'makkah' : 'madinah',
+    );
+  }
+
   @override
   List<Object?> get props => [id];
 }

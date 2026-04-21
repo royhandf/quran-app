@@ -13,11 +13,10 @@ class QuranRepository {
 
   Future<List<Surah>> getSurahs() async {
     final response = await _apiService.get(
-      '${ApiConstants.quranBaseUrl}/chapters',
-      params: {'language': 'id'},
+      '${ApiConstants.equranBaseUrl}/surat',
     );
-    final List chapters = response.data['chapters'];
-    return chapters.map((json) => Surah.fromJson(json)).toList();
+    final List surahs = response.data['data'];
+    return surahs.map((json) => Surah.fromEquranJson(json)).toList();
   }
 
   Future<List<Ayah>> getVerses(int surahId, {int translatorId = 33}) async {
@@ -55,7 +54,7 @@ class QuranRepository {
       '${ApiConstants.quranBaseUrl}/verses/by_chapter/$surahId',
       params: {
         'language': 'id',
-        'translations': '$translatorId',
+        'translations': '$translatorId,57',
         'fields': 'text_uthmani,text_imlaei',
         'per_page': 300,
       },
@@ -80,7 +79,7 @@ class QuranRepository {
       '${ApiConstants.quranBaseUrl}/verses/by_juz/$juzNumber',
       params: {
         'language': 'id',
-        'translations': '$translatorId',
+        'translations': '$translatorId,57',
         'fields': 'text_uthmani,text_imlaei',
         'per_page': 300,
       },
