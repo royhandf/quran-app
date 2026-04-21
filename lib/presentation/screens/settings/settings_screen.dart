@@ -487,65 +487,184 @@ class SettingsScreen extends StatelessWidget {
     int currentSize,
     ValueChanged<int> onSelect,
   ) {
+    final isArabic = title.toLowerCase().contains('arab');
+    final previewText = isArabic
+        ? 'بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ'
+        : title.toLowerCase().contains('latin')
+            ? 'Bismillāhirraḥmānirraḥīm'
+            : 'Dengan nama Allah Yang Maha Pengasih, Maha Penyayang.';
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (ctx) => _BottomSheet(
-        title: title,
-        child: Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: sizes.map((size) {
-            final isSelected = currentSize == size;
-            return GestureDetector(
-              onTap: () {
-                onSelect(size);
-                Navigator.pop(ctx);
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
-                width: 72,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primary : AppColors.card(ctx),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isSelected
-                        ? AppColors.primary
-                        : AppColors.dividerColor(ctx),
+      builder: (ctx) {
+        int selected = currentSize;
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+
+          void changeSize(int newSize) {
+            setModalState(() => selected = newSize);
+            // Tidak langsung update cubit — cegah rebuild yang reset selected
+          }
+
+          return _BottomSheet(
+            title: title,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Preview ──────────────────────────────────────
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 20,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.card(ctx),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Text(
+                    previewText,
+                    textAlign: isArabic ? TextAlign.right : TextAlign.center,
+                    style: TextStyle(
+                      fontSize: selected.toDouble(),
+                      fontFamily: isArabic ? 'ScheherazadeNew' : null,
+                      color: AppColors.textPrimary(ctx),
+                      height: isArabic ? 2.0 : 1.5,
+                    ),
                   ),
                 ),
-                child: Column(
+                const SizedBox(height: 24),
+
+                // ── Kontrol ukuran ───────────────────────────────
+                Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      '$size',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: isSelected
-                            ? Colors.white
-                            : AppColors.textPrimary(ctx),
+                    // Tombol minus
+                    _SizeStepButton(
+                      icon: Icons.remove_rounded,
+                      onTap: () {
+                        final idx = sizes.indexOf(selected);
+                        if (idx > 0) changeSize(sizes[idx - 1]);
+                      },
+                      enabled: sizes.indexOf(selected) > 0,
+                    ),
+                    const SizedBox(width: 16),
+
+                    // Badge ukuran saat ini
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Text(
+                        '$selected px',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          color: AppColors.primary,
+                        ),
                       ),
                     ),
-                    Text(
-                      'px',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: isSelected
-                            ? Colors.white70
-                            : AppColors.textSecondary(ctx),
-                      ),
+                    const SizedBox(width: 16),
+
+                    // Tombol plus
+                    _SizeStepButton(
+                      icon: Icons.add_rounded,
+                      onTap: () {
+                        final idx = sizes.indexOf(selected);
+                        if (idx < sizes.length - 1) changeSize(sizes[idx + 1]);
+                      },
+                      enabled: sizes.indexOf(selected) < sizes.length - 1,
                     ),
                   ],
                 ),
-              ),
-            );
-          }).toList(),
-        ),
-      ),
-    );
+                const SizedBox(height: 8),
+
+                // ── Slider ───────────────────────────────────────
+                SliderTheme(
+                  data: SliderTheme.of(ctx).copyWith(
+                    trackHeight: 4,
+                    thumbShape: const RoundSliderThumbShape(
+                      enabledThumbRadius: 10,
+                    ),
+                    overlayShape: const RoundSliderOverlayShape(
+                      overlayRadius: 20,
+                    ),
+                    activeTrackColor: AppColors.primary,
+                    inactiveTrackColor: AppColors.primary.withValues(alpha: 0.2),
+                    thumbColor: AppColors.primary,
+                  ),
+                  child: Slider(
+                    value: sizes.indexOf(selected).toDouble(),
+                    min: 0,
+                    max: (sizes.length - 1).toDouble(),
+                    divisions: sizes.length - 1,
+                    onChanged: (v) => changeSize(sizes[v.round()]),
+                  ),
+                ),
+
+                // ── Label min/maks ────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${sizes.first} px',
+                        style: AppTextStyles.bodySmall(ctx),
+                      ),
+                      Text(
+                        '${sizes.last} px',
+                        style: AppTextStyles.bodySmall(ctx),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // ── Tombol selesai ────────────────────────────────
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: () {
+                      onSelect(selected);
+                      Navigator.pop(ctx);
+                    },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Selesai',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );           // closes _BottomSheet(
+        },             // closes builder: (ctx, setModalState) {
+      );               // closes StatefulBuilder(
+    },                 // closes builder: (ctx) {
+  );                   // closes showModalBottomSheet(
   }
 
   void _showReciterDialog(
@@ -570,8 +689,6 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-
-
   void _showOptionDialog({
     required BuildContext context,
     required String title,
@@ -589,7 +706,50 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
+class _SizeStepButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  final bool enabled;
+
+  const _SizeStepButton({
+    required this.icon,
+    required this.onTap,
+    this.enabled = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: enabled ? onTap : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: enabled
+              ? AppColors.primary.withValues(alpha: 0.12)
+              : AppColors.card(context),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: enabled
+                ? AppColors.primary.withValues(alpha: 0.3)
+                : AppColors.dividerColor(context),
+          ),
+        ),
+        child: Icon(
+          icon,
+          size: 22,
+          color: enabled
+              ? AppColors.primary
+              : AppColors.textSecondary(context),
+        ),
+      ),
+    );
+  }
+}
+
 class _SectionLabel extends StatelessWidget {
+
   final String label;
   const _SectionLabel({required this.label});
 
