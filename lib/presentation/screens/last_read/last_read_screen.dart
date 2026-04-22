@@ -112,9 +112,16 @@ class _LastReadScreenState extends State<LastReadScreen> {
                         ),
                       ).then((_) {
                         if (!context.mounted) return;
-                        context.read<QuranCubit>().refreshDownloadStatus();
                         _loadLastRead();
                       });
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Data surah belum dimuat. Kembali ke halaman utama terlebih dahulu.',
+                          ),
+                        ),
+                      );
                     }
                   },
                   child: Container(
