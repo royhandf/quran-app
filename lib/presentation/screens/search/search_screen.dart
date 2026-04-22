@@ -30,6 +30,7 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   void dispose() {
     _ctrl.dispose();
+    context.read<QuranCubit>().restoreSurahList();
     super.dispose();
   }
 
@@ -60,8 +61,32 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
       body: BlocBuilder<QuranCubit, QuranState>(
         builder: (context, state) {
-          if (state is QuranLoading) {
+          if (state is QuranLoading || state is VersesLoaded) {
             return const Center(child: CircularProgressIndicator());
+          }
+          if (state is QuranError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.wifi_off_rounded,
+                    size: 52,
+                    color: AppColors.textSecondary(context),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Gagal memuat data',
+                    style: AppTextStyles.bodyMedium(context),
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () => context.read<QuranCubit>().loadSurahs(),
+                    child: const Text('Coba lagi'),
+                  ),
+                ],
+              ),
+            );
           }
           if (state is SurahsLoaded) {
             if (_ctrl.text.isEmpty) {
