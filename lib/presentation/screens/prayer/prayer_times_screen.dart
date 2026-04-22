@@ -29,64 +29,63 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: BlocBuilder<PrayerCubit, PrayerState>(
-        builder: (context, state) {
-          final title = state is PrayerLoaded
-              ? state.locationName
-              : 'Jadwal Sholat';
+    return BlocBuilder<PrayerCubit, PrayerState>(
+      builder: (context, state) {
+        final title = state is PrayerLoaded
+            ? state.locationName
+            : 'Jadwal Sholat';
 
-          return Scaffold(
-            appBar: AppBar(
-              title: Row(
-                children: [
-                  Flexible(
-                    child: Text(
-                      title,
-                      style: AppTextStyles.headingSmall(context),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+        return Scaffold(
+          appBar: AppBar(
+            title: Row(
+              children: [
+                Flexible(
+                  child: Text(
+                    title,
+                    style: AppTextStyles.headingSmall(context),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ],
-              ),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.calendar_today_outlined),
-                  onPressed: () async {
-                    final picked = await showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime(2030),
-                    );
-                    if (picked != null && context.mounted) {
-                      context.read<PrayerCubit>().loadPrayerTimesByDate(picked);
-                    }
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.location_on_outlined),
-                  onPressed: () {
-                    context.read<PrayerCubit>().loadPrayerTimes();
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.settings_outlined),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const PrayerSettingsScreen(),
-                      ),
-                    );
-                  },
                 ),
               ],
             ),
-            body: _buildBody(context, state),
-          );
-        },
-      ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.calendar_today_outlined),
+                onPressed: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime(2030),
+                  );
+                  if (picked != null && context.mounted) {
+                    context.read<PrayerCubit>().loadPrayerTimesByDate(picked);
+                  }
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.location_on_outlined),
+                onPressed: () {
+                  context.read<PrayerCubit>().loadPrayerTimes();
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.settings_outlined),
+                onPressed: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const PrayerSettingsScreen(),
+                    ),
+                  );
+                  if (context.mounted) setState(() {});
+                },
+              ),
+            ],
+          ),
+          body: _buildBody(context, state),
+        );
+      },
     );
   }
 
@@ -95,7 +94,35 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       return const Center(child: CircularProgressIndicator());
     }
     if (state is PrayerError) {
-      return Center(child: Text('Error: ${state.message}'));
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.location_off_outlined,
+              size: 52,
+              color: AppColors.textSecondary(context),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Gagal mendapatkan lokasi',
+              style: AppTextStyles.bodyMedium(context),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Pastikan GPS aktif dan izin lokasi diberikan',
+              style: AppTextStyles.bodySmall(context),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: () => context.read<PrayerCubit>().loadPrayerTimes(),
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: const Text('Coba Lagi'),
+            ),
+          ],
+        ),
+      );
     }
     if (state is PrayerLoaded) {
       final times = state.prayerTime.toList();
@@ -107,7 +134,6 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Info Panel
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -172,6 +198,15 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                               ),
                             ),
                           );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Arah kiblat tidak tersedia. Aktifkan GPS dan muat ulang.',
+                              ),
+                              duration: Duration(seconds: 3),
+                            ),
+                          );
                         }
                       },
                       icon: const Icon(Icons.explore, size: 18),
@@ -213,6 +248,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
               ],
             ),
           ),
+
           Expanded(
             child: ListView.separated(
               padding: const EdgeInsets.all(16),
@@ -259,6 +295,8 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                               prayerName: p.name,
                               time: p.time,
                             );
+                          } else {
+                            NotificationService.cancelAdzan(index);
                           }
                         },
                         child: Icon(

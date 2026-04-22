@@ -9,12 +9,26 @@ class NotificationService {
   static Future<void> init() async {
     tzdata.initializeTimeZones();
 
+    final String deviceTz = DateTime.now().timeZoneName;
+    try {
+      tz.setLocalLocation(tz.getLocation(deviceTz));
+    } catch (_) {
+      tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
+    }
+
     const androidSettings = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
     await _plugin.initialize(
       settings: const InitializationSettings(android: androidSettings),
     );
+
+    final androidPlugin = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    await androidPlugin?.requestExactAlarmsPermission();
+    await androidPlugin?.requestNotificationsPermission();
   }
 
   static Future<void> scheduleAdzan({
@@ -63,6 +77,10 @@ class NotificationService {
         time: prayers[i].time,
       );
     }
+  }
+
+  static Future<void> cancelAdzan(int id) async {
+    await _plugin.cancel(id: id);
   }
 
   static Future<void> cancelAll() async {
