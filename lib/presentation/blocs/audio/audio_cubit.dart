@@ -8,7 +8,7 @@ class AudioCubit extends Cubit<AudioState> {
   final QuranRepository _repository;
   final AudioPlayer _player = AudioPlayer();
 
-  ConcatenatingAudioSource? _playlist;
+  List<AudioSource>? _playlist;
   int _currentSurahId = -1;
   int _currentReciterId = -1;
   bool _isPlaylistLoaded = false;
@@ -34,9 +34,9 @@ class AudioCubit extends Cubit<AudioState> {
     if (!_isPlaylistLoaded || _playlist == null) return;
 
     final index = _player.currentIndex;
-    if (index == null || index >= _playlist!.children.length) return;
+    if (index == null || index >= _playlist!.length) return;
 
-    final source = _playlist!.children[index] as IndexedAudioSource;
+    final source = _playlist![index] as IndexedAudioSource;
     final ayahNumber = source.tag as int;
 
     if (_player.processingState == ProcessingState.buffering ||
@@ -74,10 +74,10 @@ class AudioCubit extends Cubit<AudioState> {
       final children = <AudioSource>[];
       for (final num in ayahNumbers) {
         final url = audioFiles['$surahId:$num']!;
-        children.add(LockCachingAudioSource(Uri.parse(url), tag: num));
+        children.add(AudioSource.uri(Uri.parse(url), tag: num));
       }
 
-      _playlist = ConcatenatingAudioSource(children: children);
+      _playlist = children;
     } catch (_) {
       // fail silently
     }
@@ -85,9 +85,8 @@ class AudioCubit extends Cubit<AudioState> {
 
   int _getIndexForAyah(int ayahNumber) {
     if (_playlist == null) return -1;
-    for (int i = 0; i < _playlist!.children.length; i++) {
-      if ((_playlist!.children[i] as IndexedAudioSource).tag as int ==
-          ayahNumber) {
+    for (int i = 0; i < _playlist!.length; i++) {
+      if ((_playlist![i] as IndexedAudioSource).tag as int == ayahNumber) {
         return i;
       }
     }
@@ -159,7 +158,7 @@ class AudioCubit extends Cubit<AudioState> {
     emit(AudioLoading(ayahNumber));
     try {
       if (!_isPlaylistLoaded) {
-        await _player.setAudioSource(_playlist!, initialIndex: index);
+        await _player.setAudioSources(_playlist!, initialIndex: index);
         _isPlaylistLoaded = true;
       } else {
         await _player.seek(Duration.zero, index: index);
