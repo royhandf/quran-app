@@ -74,10 +74,6 @@ class _LastReadScreenState extends State<LastReadScreen> {
                       surahId,
                     );
                     if (surah != null) {
-                      final translatorId = context
-                          .read<SettingsCubit>()
-                          .state
-                          .translatorId;
                       final reciterId = context
                           .read<SettingsCubit>()
                           .state
@@ -92,10 +88,7 @@ class _LastReadScreenState extends State<LastReadScreen> {
                                 create: (_) =>
                                     QuranCubit(
                                       context.read<QuranCubit>().repository,
-                                    )..loadVerses(
-                                      surah,
-                                      translatorId: translatorId,
-                                    ),
+                                    )..loadVerses(surah),
                               ),
                               BlocProvider(
                                 create: (_) =>
