@@ -171,6 +171,7 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
                             onChanged: (v) {
                               _hiveService.setHijriAdjustment(v.toInt());
                               setState(() {});
+                              _reloadPrayerTimes();
                             },
                           ),
                         ),
