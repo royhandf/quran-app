@@ -12,7 +12,6 @@ import '../../blocs/settings/settings_cubit.dart';
 import '../../blocs/audio/audio_cubit.dart';
 import 'surah_detail_screen.dart';
 
-
 class SurahListScreen extends StatefulWidget {
   const SurahListScreen({super.key});
   @override
@@ -169,17 +168,34 @@ class _SurahListScreenState extends State<SurahListScreen>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Error: ${state.message}'),
+                Icon(
+                  Icons.wifi_off_rounded,
+                  size: 52,
+                  color: AppColors.textSecondary(context),
+                ),
                 const SizedBox(height: 12),
-                ElevatedButton(
+                Text(
+                  'Gagal memuat daftar surah',
+                  style: AppTextStyles.bodyMedium(context),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Periksa koneksi internet dan coba lagi',
+                  style: AppTextStyles.bodySmall(context),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                FilledButton.icon(
                   onPressed: () => context.read<QuranCubit>().loadSurahs(),
-                  child: const Text('Retry'),
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: const Text('Coba Lagi'),
                 ),
               ],
             ),
           );
         }
         if (state is SurahsLoaded) {
+          final lastRead = GetIt.I<HiveService>().getLastRead();
           return ListView.separated(
             itemCount: state.surahs.length,
             separatorBuilder: (_, _) => Divider(
@@ -189,7 +205,6 @@ class _SurahListScreenState extends State<SurahListScreen>
             ),
             itemBuilder: (context, index) {
               final surah = state.surahs[index];
-              final lastRead = GetIt.I<HiveService>().getLastRead();
               final isLastRead =
                   lastRead != null && lastRead['surahId'] == surah.id;
               return Container(
@@ -287,7 +302,6 @@ class _SurahListScreenState extends State<SurahListScreen>
     );
   }
 
-
   Widget _buildBookmarkTab() {
     return BlocBuilder<BookmarkCubit, BookmarkState>(
       builder: (context, state) {
@@ -375,6 +389,14 @@ class _SurahListScreenState extends State<SurahListScreen>
                       if (!context.mounted) return;
                       context.read<QuranCubit>().refreshDownloadStatus();
                     });
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Data surah belum dimuat. Kembali ke halaman utama terlebih dahulu.',
+                        ),
+                      ),
+                    );
                   }
                 },
               );
