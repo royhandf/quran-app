@@ -178,7 +178,41 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (quranState is QuranError) {
-                  return Center(child: Text('Error: ${quranState.message}'));
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.wifi_off_rounded,
+                          size: 52,
+                          color: AppColors.textSecondary(context),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Gagal memuat ayat',
+                          style: AppTextStyles.bodyMedium(context),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Periksa koneksi internet dan coba lagi',
+                          style: AppTextStyles.bodySmall(context),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        FilledButton.icon(
+                          onPressed: () => context.read<QuranCubit>().loadVerses(
+                            _currentSurah,
+                            translatorId: context
+                                .read<SettingsCubit>()
+                                .state
+                                .translatorId,
+                          ),
+                          icon: const Icon(Icons.refresh_rounded, size: 18),
+                          label: const Text('Coba Lagi'),
+                        ),
+                      ],
+                    ),
+                  );
                 }
                 if (quranState is VersesLoaded) {
                   if (widget.initialAyah != null && !_hasScrolled) {
@@ -671,6 +705,14 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
   }
 
   void _navigateToSurah(Surah surah) {
+    // Hentikan auto-scroll sebelum ganti surah
+    if (_isAutoScrolling) {
+      _stopAutoScrollTimer();
+      setState(() {
+        _isAutoScrolling = false;
+        _isAutoScrollPaused = false;
+      });
+    }
     final ids = context.read<QuranCubit>().repository.getDownloadedSurahIds();
     setState(() {
       _currentSurah = surah;
