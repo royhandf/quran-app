@@ -27,6 +27,25 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     context.read<PrayerCubit>().loadPrayerTimes();
   }
 
+  static int _prayerNotifId(String prayerName) {
+    const ids = {
+      'Fajr': 1,
+      'Sunrise': 2,
+      'Dhuhr': 3,
+      'Asr': 4,
+      'Maghrib': 5,
+      'Isha': 6,
+      // Nama Indonesia
+      'Subuh': 1,
+      'Terbit': 2,
+      'Dzuhur': 3,
+      'Ashar': 4,
+      'Maghrib ': 5,
+      'Isya': 6,
+    };
+    return ids[prayerName] ?? prayerName.hashCode.abs() % 100 + 10;
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PrayerCubit, PrayerState>(
@@ -291,12 +310,14 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                           setState(() {});
                           if (enabled) {
                             NotificationService.scheduleAdzan(
-                              id: index,
+                              id: _prayerNotifId(p.name),
                               prayerName: p.name,
                               time: p.time,
                             );
                           } else {
-                            NotificationService.cancelAdzan(index);
+                            NotificationService.cancelAdzan(
+                              _prayerNotifId(p.name),
+                            );
                           }
                         },
                         child: Icon(

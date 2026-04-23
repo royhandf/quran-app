@@ -68,13 +68,20 @@ class NotificationService {
   }
 
   static Future<void> scheduleAllPrayers(List<PrayerItem> prayers) async {
+    const ids = {
+      'Fajr': 1, 'Sunrise': 2, 'Dhuhr': 3,
+      'Asr': 4, 'Maghrib': 5, 'Isha': 6,
+      'Subuh': 1, 'Terbit': 2, 'Dzuhur': 3,
+      'Ashar': 4, 'Isya': 6,
+    };
     await _plugin.cancelAll();
-    for (int i = 0; i < prayers.length; i++) {
-      if (prayers[i].name == 'Terbit') continue;
+    for (final prayer in prayers) {
+      if (prayer.name == 'Terbit') continue;
+      final id = ids[prayer.name] ?? prayer.name.hashCode.abs() % 100 + 10;
       await scheduleAdzan(
-        id: i,
-        prayerName: prayers[i].name,
-        time: prayers[i].time,
+        id: id,
+        prayerName: prayer.name,
+        time: prayer.time,
       );
     }
   }
