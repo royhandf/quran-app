@@ -714,11 +714,13 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
       });
     }
     final ids = context.read<QuranCubit>().repository.getDownloadedSurahIds();
+    context.read<AudioCubit>().stop();
     setState(() {
       _currentSurah = surah;
       _ayahKeys.clear();
       _hasScrolled = false;
       _isDownloaded = ids.contains(surah.id);
+      _highlightedAyah = null;
     });
     _scrollController.jumpTo(0);
     context.read<QuranCubit>().loadVerses(

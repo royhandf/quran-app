@@ -75,7 +75,9 @@ class _HomeScreenState extends State<HomeScreen>
         },
         transitionDuration: const Duration(milliseconds: 300),
       ),
-    );
+    ).then((_) {
+      if (mounted) _loadLastRead();
+    });
   }
 
   @override
