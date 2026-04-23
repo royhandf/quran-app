@@ -18,19 +18,21 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final _ctrl = TextEditingController();
+  late final QuranCubit _quranCubit;
 
   @override
   void initState() {
     super.initState();
-    if (context.read<QuranCubit>().state is! SurahsLoaded) {
-      context.read<QuranCubit>().loadSurahs();
+    _quranCubit = context.read<QuranCubit>();
+    if (_quranCubit.state is! SurahsLoaded) {
+      _quranCubit.loadSurahs();
     }
   }
 
   @override
   void dispose() {
     _ctrl.dispose();
-    context.read<QuranCubit>().restoreSurahList();
+    _quranCubit.restoreSurahList();
     super.dispose();
   }
 
