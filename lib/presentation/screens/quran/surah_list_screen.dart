@@ -108,11 +108,6 @@ class _SurahListScreenState extends State<SurahListScreen>
               });
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.format_color_text),
-            onPressed: () {},
-          ),
-          IconButton(icon: const Icon(Icons.more_vert), onPressed: () {}),
         ],
         bottom: TabBar(
           controller: _tabController,
