@@ -190,10 +190,11 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            Text(
-                              '${timeUntil!.inHours} jam ${timeUntil.inMinutes % 60} menit lagi',
-                              style: AppTextStyles.bodySmall(context),
-                            ),
+                            if (timeUntil != null)
+                              Text(
+                                '${timeUntil.inHours} jam ${timeUntil.inMinutes % 60} menit lagi',
+                                style: AppTextStyles.bodySmall(context),
+                              ),
                           ] else
                             Text(
                               'Semua waktu sholat hari ini sudah lewat',
