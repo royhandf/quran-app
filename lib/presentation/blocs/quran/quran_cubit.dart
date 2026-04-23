@@ -32,14 +32,18 @@ class QuranCubit extends Cubit<QuranState> {
   }
 
   Future<void> downloadSurah(int surahId) async {
+    final downloadedIds = _repository.getDownloadedSurahIds();
+    emit(SurahsLoaded(_allSurahs,
+        downloadedIds: downloadedIds, downloadingSurahId: surahId));
     try {
       await _repository.downloadSurah(surahId);
-      final downloadedIds = _repository.getDownloadedSurahIds();
-      emit(SurahsLoaded(_allSurahs, downloadedIds: downloadedIds));
+      final updatedIds = _repository.getDownloadedSurahIds();
+      emit(SurahsLoaded(_allSurahs, downloadedIds: updatedIds));
     } catch (e) {
-      emit(QuranError('Gagal download: ${e.toString()}'));
-      final downloadedIds = _repository.getDownloadedSurahIds();
-      emit(SurahsLoaded(_allSurahs, downloadedIds: downloadedIds));
+      final updatedIds = _repository.getDownloadedSurahIds();
+      emit(SurahsLoaded(_allSurahs,
+          downloadedIds: updatedIds,
+          errorMessage: 'Gagal download: ${e.toString()}'));
     }
   }
 

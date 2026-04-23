@@ -15,10 +15,18 @@ class QuranLoading extends QuranState {}
 class SurahsLoaded extends QuranState {
   final List<Surah> surahs;
   final Set<int> downloadedIds;
+  final String? errorMessage;
+  final int? downloadingSurahId;
 
-  const SurahsLoaded(this.surahs, {this.downloadedIds = const {}});
+  const SurahsLoaded(
+    this.surahs, {
+    this.downloadedIds = const {},
+    this.errorMessage,
+    this.downloadingSurahId,
+  });
   @override
-  List<Object?> get props => [surahs, downloadedIds];
+  List<Object?> get props =>
+      [surahs, downloadedIds, errorMessage, downloadingSurahId];
 }
 
 class VersesLoaded extends QuranState {

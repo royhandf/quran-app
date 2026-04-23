@@ -153,7 +153,14 @@ class _SurahListScreenState extends State<SurahListScreen>
   }
 
   Widget _buildSurahTab() {
-    return BlocBuilder<QuranCubit, QuranState>(
+    return BlocConsumer<QuranCubit, QuranState>(
+      listener: (context, state) {
+        if (state is SurahsLoaded && state.errorMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.errorMessage!)),
+          );
+        }
+      },
       builder: (context, state) {
         if (state is QuranLoading) {
           return const Center(child: CircularProgressIndicator());
@@ -202,6 +209,8 @@ class _SurahListScreenState extends State<SurahListScreen>
               final surah = state.surahs[index];
               final isLastRead =
                   lastRead != null && lastRead['surahId'] == surah.id;
+              final isDownloading =
+                  state.downloadingSurahId == surah.id;
               return Container(
                 color: isLastRead
                     ? AppColors.primary.withValues(alpha: 0.08)
@@ -230,26 +239,35 @@ class _SurahListScreenState extends State<SurahListScreen>
                         style: AppTextStyles.arabicMedium(context),
                       ),
                       const SizedBox(width: 8),
-                      state.downloadedIds.contains(surah.id)
-                          ? GestureDetector(
-                              onLongPress: () =>
-                                  _showDeleteDialog(context, surah.id),
-                              child: Icon(
-                                Icons.check_circle,
-                                color: AppColors.primary,
-                                size: 22,
-                              ),
-                            )
-                          : GestureDetector(
-                              onTap: () => context
-                                  .read<QuranCubit>()
-                                  .downloadSurah(surah.id),
-                              child: Icon(
-                                Icons.download_outlined,
-                                color: AppColors.primary,
-                                size: 22,
-                              ),
-                            ),
+                      if (isDownloading)
+                        const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        )
+                      else if (state.downloadedIds.contains(surah.id))
+                        GestureDetector(
+                          onLongPress: () =>
+                              _showDeleteDialog(context, surah.id),
+                          child: Icon(
+                            Icons.check_circle,
+                            color: AppColors.primary,
+                            size: 22,
+                          ),
+                        )
+                      else
+                        GestureDetector(
+                          onTap: () => context
+                              .read<QuranCubit>()
+                              .downloadSurah(surah.id),
+                          child: Icon(
+                            Icons.download_outlined,
+                            color: AppColors.primary,
+                            size: 22,
+                          ),
+                        ),
                     ],
                   ),
                   onTap: () {
