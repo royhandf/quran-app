@@ -8,7 +8,6 @@ import '../../blocs/quran/quran_cubit.dart';
 import '../../blocs/quran/quran_state.dart';
 import '../../blocs/bookmark/bookmark_cubit.dart';
 import '../../blocs/bookmark/bookmark_state.dart';
-import '../../blocs/settings/settings_cubit.dart';
 import '../../blocs/audio/audio_cubit.dart';
 import 'surah_detail_screen.dart';
 
@@ -280,13 +279,7 @@ class _SurahListScreenState extends State<SurahListScreen>
                               create: (_) =>
                                   QuranCubit(
                                     context.read<QuranCubit>().repository,
-                                  )..loadVerses(
-                                    surah,
-                                    translatorId: context
-                                        .read<SettingsCubit>()
-                                        .state
-                                        .translatorId,
-                                  ),
+                                  )..loadVerses(surah),
                             ),
                             BlocProvider(
                               create: (_) => AudioCubit(
@@ -377,13 +370,7 @@ class _SurahListScreenState extends State<SurahListScreen>
                               create: (_) =>
                                   QuranCubit(
                                     context.read<QuranCubit>().repository,
-                                  )..loadVerses(
-                                    surah,
-                                    translatorId: context
-                                        .read<SettingsCubit>()
-                                        .state
-                                        .translatorId,
-                                  ),
+                                  )..loadVerses(surah),
                             ),
                             BlocProvider(
                               create: (_) => AudioCubit(

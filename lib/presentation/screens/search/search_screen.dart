@@ -148,10 +148,6 @@ class _SearchScreenState extends State<SearchScreen> {
                     style: AppTextStyles.arabicMedium(context),
                   ),
                   onTap: () {
-                    final translatorId = context
-                        .read<SettingsCubit>()
-                        .state
-                        .translatorId;
                     final reciterId = context
                         .read<SettingsCubit>()
                         .state
@@ -165,7 +161,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             BlocProvider(
                               create: (_) => QuranCubit(
                                 context.read<QuranCubit>().repository,
-                              )..loadVerses(s, translatorId: translatorId),
+                              )..loadVerses(s),
                             ),
                             BlocProvider(
                               create: (_) =>

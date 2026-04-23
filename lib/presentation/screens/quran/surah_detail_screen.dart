@@ -202,10 +202,6 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                         FilledButton.icon(
                           onPressed: () => context.read<QuranCubit>().loadVerses(
                             _currentSurah,
-                            translatorId: context
-                                .read<SettingsCubit>()
-                                .state
-                                .translatorId,
                           ),
                           icon: const Icon(Icons.refresh_rounded, size: 18),
                           label: const Text('Coba Lagi'),
@@ -723,10 +719,7 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
       _highlightedAyah = null;
     });
     _scrollController.jumpTo(0);
-    context.read<QuranCubit>().loadVerses(
-      surah,
-      translatorId: context.read<SettingsCubit>().state.translatorId,
-    );
+    context.read<QuranCubit>().loadVerses(surah);
     _loadAudio();
   }
 
