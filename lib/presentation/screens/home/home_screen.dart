@@ -82,8 +82,9 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: AppColors.darkBackground,
+      backgroundColor: AppColors.background(context),
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -91,11 +92,17 @@ class _HomeScreenState extends State<HomeScreen>
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              const Color(0xFF1A3A2A),
-              const Color(0xFF0F2218),
-              AppColors.darkBackground,
-            ],
+            colors: isDark
+                ? [
+                    const Color(0xFF1A3A2A),
+                    const Color(0xFF0F2218),
+                    AppColors.darkBackground,
+                  ]
+                : [
+                    const Color(0xFFE8F5F0),
+                    const Color(0xFFF0F7F4),
+                    AppColors.lightBackground,
+                  ],
             stops: const [0.0, 0.35, 0.7],
           ),
         ),
@@ -402,11 +409,12 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildPrayerCardSkeleton() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       height: 100,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        color: const Color(0xFF1E2E2A),
+        color: isDark ? const Color(0xFF1E2E2A) : const Color(0xFFE0EFEA),
       ),
       child: const Center(
         child: CircularProgressIndicator(
@@ -451,7 +459,9 @@ class _HomeScreenState extends State<HomeScreen>
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            color: const Color(0xFF1C1C1C).withValues(alpha: 0.8),
+            color: Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF1C1C1C).withValues(alpha: 0.8)
+                : Colors.white.withValues(alpha: 0.9),
             border: Border.all(
               color: AppColors.gold.withValues(alpha: 0.3),
               width: 1,
@@ -488,11 +498,11 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                     Text(
                       _lastRead!['surahName'] ?? 'Al-Fatihah',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                        color: AppColors.textPrimary(context),
                       ),
                     ),
                   ],
@@ -500,16 +510,16 @@ class _HomeScreenState extends State<HomeScreen>
               ),
               Text(
                 'Ayat ${_lastRead!['ayahNumber'] ?? 1}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 12,
-                  color: Colors.white54,
+                  color: AppColors.textSecondary(context),
                 ),
               ),
               const SizedBox(width: 8),
-              const Icon(
+              Icon(
                 Icons.arrow_forward_ios_rounded,
-                color: Colors.white38,
+                color: AppColors.textSecondary(context).withValues(alpha: 0.5),
                 size: 14,
               ),
             ],
@@ -525,13 +535,13 @@ class _HomeScreenState extends State<HomeScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Menu Utama',
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: Colors.white,
+              color: AppColors.textPrimary(context),
               letterSpacing: 0.3,
             ),
           ),
@@ -625,9 +635,13 @@ class _HomeScreenState extends State<HomeScreen>
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          color: Colors.white.withValues(alpha: 0.06),
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white.withValues(alpha: 0.06)
+              : Colors.black.withValues(alpha: 0.04),
           border: Border.all(
-            color: Colors.white.withValues(alpha: 0.08),
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white.withValues(alpha: 0.08)
+                : Colors.black.withValues(alpha: 0.06),
             width: 1,
           ),
         ),
@@ -646,11 +660,11 @@ class _HomeScreenState extends State<HomeScreen>
             const SizedBox(height: 14),
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: Colors.white,
+                color: AppColors.textPrimary(context),
                 height: 1.3,
               ),
             ),
@@ -660,7 +674,7 @@ class _HomeScreenState extends State<HomeScreen>
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 11,
-                color: Colors.white.withValues(alpha: 0.4),
+                color: AppColors.textSecondary(context),
               ),
             ),
           ],
