@@ -27,7 +27,7 @@ class QuranRepository {
     return surahs.map((json) => Surah.fromEquranJson(json)).toList();
   }
 
-  Future<List<Ayah>> getVerses(int surahId, {int translatorId = 33}) async {
+  Future<List<Ayah>> getVerses(int surahId) async {
     final local = _hiveService.getVerses(surahId);
     if (local != null) {
       return local.map((json) => Ayah.fromJson(json)).toList();
@@ -35,7 +35,7 @@ class QuranRepository {
     return _fetchVersesFromApi(surahId);
   }
 
-  Future<List<Ayah>> downloadSurah(int surahId, {int translatorId = 33}) async {
+  Future<List<Ayah>> downloadSurah(int surahId) async {
     final verses = await _fetchVersesFromApi(surahId);
     final jsonList = verses.map((a) => a.toJson()).toList();
     await _hiveService.saveVerses(surahId, jsonList);

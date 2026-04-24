@@ -146,11 +146,6 @@ class SettingsCubit extends Cubit<SettingsState> {
   }
 
   // === Terjemahan ===
-  void setTranslator(String name, int id) {
-    _hiveService.saveSetting('translator', name);
-    emit(state.copyWith(translator: name));
-  }
-
   void toggleTranslation(bool v) {
     _hiveService.saveSetting('showTranslation', v);
     emit(state.copyWith(showTranslation: v));

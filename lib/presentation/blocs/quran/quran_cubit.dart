@@ -64,7 +64,7 @@ class QuranCubit extends Cubit<QuranState> {
     emit(SurahsLoaded(_allSurahs, downloadedIds: downloadedIds));
   }
 
-  Future<void> loadVerses(Surah surah, {int translatorId = 33}) async {
+  Future<void> loadVerses(Surah surah) async {
     emit(QuranLoading());
     try {
       var verses = await _repository.getVerses(surah.id);
