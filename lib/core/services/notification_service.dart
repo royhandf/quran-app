@@ -9,9 +9,22 @@ class NotificationService {
   static Future<void> init() async {
     tzdata.initializeTimeZones();
 
+    // DateTime.now().timeZoneName di Android mengembalikan singkatan
+    // seperti "WIB", "WITA", "WIT" — bukan IANA timezone.
+    // Mapping manual ke IANA agar notifikasi adzan tepat waktu.
+    const tzAbbreviationMap = {
+      'WIB': 'Asia/Jakarta',
+      'WITA': 'Asia/Makassar',
+      'WIT': 'Asia/Jayapura',
+      'GMT+7': 'Asia/Jakarta',
+      'GMT+8': 'Asia/Makassar',
+      'GMT+9': 'Asia/Jayapura',
+    };
+
     final String deviceTz = DateTime.now().timeZoneName;
+    final String ianaTz = tzAbbreviationMap[deviceTz] ?? deviceTz;
     try {
-      tz.setLocalLocation(tz.getLocation(deviceTz));
+      tz.setLocalLocation(tz.getLocation(ianaTz));
     } catch (_) {
       tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
     }
