@@ -392,7 +392,9 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             );
           }
-          if (state is PrayerLoading) return _buildPrayerCardSkeleton();
+          if (state is PrayerLoading || state is PrayerInitial) {
+            return _buildPrayerCardSkeleton();
+          }
           return _buildPrayerCardError();
         },
       ),
