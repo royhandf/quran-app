@@ -270,13 +270,17 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
           ),
 
           Expanded(
-            child: ListView.separated(
+            child: RefreshIndicator(
+              onRefresh: () => context.read<PrayerCubit>().loadPrayerTimes(),
+              color: AppColors.primary,
+              child: ListView.separated(
               padding: const EdgeInsets.all(16),
               itemCount: times.length,
               separatorBuilder: (_, _) =>
                   Divider(height: 1, color: AppColors.dividerColor(context)),
               itemBuilder: (context, index) {
                 final p = times[index];
+                final isNext = nextIndex != -1 && index == nextIndex;
                 final isPassed = nextIndex == -1 || index < nextIndex;
                 final alarmEnabled = _hiveService.isAlarmEnabled(p.name);
                 return Padding(
@@ -287,20 +291,24 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                         child: Text(
                           p.name,
                           style: AppTextStyles.bodyLarge(context).copyWith(
-                            color: isPassed
+                            color: isNext
                                 ? AppColors.primary
-                                : AppColors.textPrimary(context),
-                            fontWeight: FontWeight.w500,
+                                : isPassed
+                                    ? AppColors.textSecondary(context)
+                                    : AppColors.textPrimary(context),
+                            fontWeight: isNext ? FontWeight.w700 : FontWeight.w500,
                           ),
                         ),
                       ),
                       Text(
                         use12h ? PrayerTime.to12Hour(p.time) : p.time,
                         style: AppTextStyles.bodyLarge(context).copyWith(
-                          color: isPassed
+                          color: isNext
                               ? AppColors.primary
-                              : AppColors.textPrimary(context),
-                          fontWeight: FontWeight.w600,
+                              : isPassed
+                                  ? AppColors.textSecondary(context)
+                                  : AppColors.textPrimary(context),
+                          fontWeight: isNext ? FontWeight.w700 : FontWeight.w600,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -335,6 +343,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                   ),
                 );
               },
+            ),
             ),
           ),
         ],

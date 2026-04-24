@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _shimmerCtrl;
   Map<String, dynamic>? _lastRead;
+  Timer? _countdownTimer;
 
   @override
   void initState() {
@@ -33,6 +35,10 @@ class _HomeScreenState extends State<HomeScreen>
       duration: const Duration(seconds: 3),
     )..repeat();
     _loadLastRead();
+
+    _countdownTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) setState(() {});
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -52,6 +58,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   void dispose() {
+    _countdownTimer?.cancel();
     _shimmerCtrl.dispose();
     super.dispose();
   }
