@@ -62,11 +62,4 @@ class AppTextStyles {
     color: AppColors.primary,
     letterSpacing: 0.5,
   );
-
-  static TextStyle menuButton() => GoogleFonts.poppins(
-    fontSize: 16,
-    fontWeight: FontWeight.w700,
-    color: AppColors.white,
-    letterSpacing: 2.0,
-  );
 }
