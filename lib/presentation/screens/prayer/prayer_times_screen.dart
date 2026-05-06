@@ -40,7 +40,6 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       'Terbit': 2,
       'Dzuhur': 3,
       'Ashar': 4,
-      'Maghrib ': 5,
       'Isya': 6,
     };
     return ids[prayerName] ?? prayerName.hashCode.abs() % 100 + 10;
