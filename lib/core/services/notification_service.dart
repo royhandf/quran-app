@@ -1,6 +1,7 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tzdata;
+import '../../data/local/hive_service.dart';
 import '../../data/models/prayer_time.dart';
 
 class NotificationService {
@@ -9,9 +10,6 @@ class NotificationService {
   static Future<void> init() async {
     tzdata.initializeTimeZones();
 
-    // DateTime.now().timeZoneName di Android mengembalikan singkatan
-    // seperti "WIB", "WITA", "WIT" — bukan IANA timezone.
-    // Mapping manual ke IANA agar notifikasi adzan tepat waktu.
     const tzAbbreviationMap = {
       'WIB': 'Asia/Jakarta',
       'WITA': 'Asia/Makassar',
@@ -29,27 +27,27 @@ class NotificationService {
       tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
     }
 
-    const androidSettings = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
-    );
+    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     await _plugin.initialize(
       settings: const InitializationSettings(android: androidSettings),
     );
 
     final androidPlugin = _plugin
         .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >();
+            AndroidFlutterLocalNotificationsPlugin>();
     await androidPlugin?.requestExactAlarmsPermission();
     await androidPlugin?.requestNotificationsPermission();
   }
 
+  /// Schedule satu adzan. Jika waktu sudah lewat, schedule ke hari berikutnya.
   static Future<void> scheduleAdzan({
     required int id,
     required String prayerName,
     required String time,
   }) async {
     final parts = time.split(':');
+    if (parts.length < 2) return;
+
     final now = DateTime.now();
     var scheduledDate = DateTime(
       now.year,
@@ -59,7 +57,10 @@ class NotificationService {
       int.parse(parts[1]),
     );
 
-    if (scheduledDate.isBefore(now)) return;
+    // Kalau sudah lewat, jadwalkan hari berikutnya
+    if (scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    }
 
     await _plugin.zonedSchedule(
       id: id,
@@ -80,22 +81,32 @@ class NotificationService {
     );
   }
 
-  static Future<void> scheduleAllPrayers(List<PrayerItem> prayers) async {
-    const ids = {
-      'Fajr': 1, 'Sunrise': 2, 'Dhuhr': 3,
-      'Asr': 4, 'Maghrib': 5, 'Isha': 6,
-      'Subuh': 1, 'Terbit': 2, 'Dzuhur': 3,
-      'Ashar': 4, 'Isya': 6,
+  /// Schedule semua sholat yang di-enable user, cancel yang di-disable.
+  static Future<void> scheduleAllPrayers(
+    List<PrayerItem> prayers,
+    HiveService hiveService,
+  ) async {
+    const nameToId = {
+      'Fajr': 1, 'Sunrise': 2, 'Dhuhr': 3, 'Asr': 4, 'Maghrib': 5, 'Isha': 6,
+      'Subuh': 1, 'Terbit': 2, 'Dzuhur': 3, 'Ashar': 4, 'Isya': 6,
     };
-    await _plugin.cancelAll();
+
     for (final prayer in prayers) {
-      if (prayer.name == 'Terbit') continue;
-      final id = ids[prayer.name] ?? prayer.name.hashCode.abs() % 100 + 10;
-      await scheduleAdzan(
-        id: id,
-        prayerName: prayer.name,
-        time: prayer.time,
-      );
+      // Terbit / Sunrise tidak perlu notifikasi
+      if (prayer.name == 'Terbit' || prayer.name == 'Sunrise') continue;
+
+      final id = nameToId[prayer.name] ?? prayer.name.hashCode.abs() % 100 + 10;
+      final enabled = hiveService.isAlarmEnabled(prayer.name);
+
+      if (enabled) {
+        await scheduleAdzan(
+          id: id,
+          prayerName: prayer.name,
+          time: prayer.time,
+        );
+      } else {
+        await cancelAdzan(id);
+      }
     }
   }
 

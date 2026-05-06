@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../core/services/location_service.dart';
+import '../../../core/services/notification_service.dart';
 import '../../../data/local/hive_service.dart';
 import '../../../data/repositories/prayer_repository.dart';
 import 'prayer_state.dart';
@@ -26,6 +27,11 @@ class PrayerCubit extends Cubit<PrayerState> {
       final result = await _fetchPrayerData(position);
       _hiveService.cachePrayerData(result);
       emit(result);
+      // Schedule ulang semua alarm sesuai preferensi user
+      await NotificationService.scheduleAllPrayers(
+        result.prayerTime.toList(),
+        _hiveService,
+      );
     } catch (e) {
       if (state is! PrayerLoaded) emit(PrayerError(e.toString()));
     }
