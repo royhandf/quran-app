@@ -83,6 +83,20 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
           backgroundColor: AppColors.background(context),
           elevation: 0,
           scrolledUnderElevation: 0,
+          title: Column(
+            children: [
+              Text(
+                _currentSurah.nameSimple,
+                style: AppTextStyles.bodyMedium(
+                  context,
+                ).copyWith(fontWeight: FontWeight.w700),
+              ),
+              Text(
+                _currentSurah.translatedName,
+                style: AppTextStyles.bodySmall(context),
+              ),
+            ],
+          ),
           actions: [
             IconButton(
               icon: Icon(

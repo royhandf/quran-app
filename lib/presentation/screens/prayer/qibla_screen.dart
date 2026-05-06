@@ -13,7 +13,20 @@ class QiblaScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Arah Kiblat')),
+      backgroundColor: AppColors.background(context),
+      appBar: AppBar(
+        backgroundColor: AppColors.background(context),
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        title: Text(
+          'Arah Kiblat',
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            color: AppColors.textPrimary(context),
+          ),
+        ),
+      ),
       body: StreamBuilder<CompassEvent>(
         stream: FlutterCompass.events,
         builder: (context, snapshot) {
@@ -22,22 +35,34 @@ class QiblaScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.compass_calibration_outlined,
-                    size: 64,
-                    color: AppColors.textSecondary(context),
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.compass_calibration_outlined,
+                      size: 38,
+                      color: AppColors.primary,
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   Text(
                     'Sensor kompas tidak tersedia',
-                    style: TextStyle(color: AppColors.textSecondary(context)),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                      color: AppColors.textPrimary(context),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Putar dan gerakkan HP Anda\nuntuk kalibrasi kompas',
                     style: TextStyle(
                       color: AppColors.textSecondary(context),
-                      fontSize: 12,
+                      fontSize: 13,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -291,28 +316,36 @@ class QiblaScreen extends StatelessWidget {
     required double heading,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _infoTile(
-            context,
-            icon: Icons.navigation_outlined,
-            label: 'Arah Kiblat',
-            value: '${qiblaDirection.toStringAsFixed(1)}°',
-          ),
-          Container(
-            width: 1,
-            height: 40,
-            color: AppColors.dividerColor(context),
-          ),
-          _infoTile(
-            context,
-            icon: Icons.explore_outlined,
-            label: 'Kompas',
-            value: '${heading.toStringAsFixed(1)}°',
-          ),
-        ],
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        decoration: BoxDecoration(
+          color: AppColors.card(context),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.dividerColor(context)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _infoTile(
+              context,
+              icon: Icons.navigation_outlined,
+              label: 'Arah Kiblat',
+              value: '${qiblaDirection.toStringAsFixed(1)}°',
+            ),
+            Container(
+              width: 1,
+              height: 40,
+              color: AppColors.dividerColor(context),
+            ),
+            _infoTile(
+              context,
+              icon: Icons.explore_outlined,
+              label: 'Kompas',
+              value: '${heading.toStringAsFixed(1)}°',
+            ),
+          ],
+        ),
       ),
     );
   }
