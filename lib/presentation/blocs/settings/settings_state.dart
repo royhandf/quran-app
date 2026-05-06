@@ -19,7 +19,6 @@ class SettingsState extends Equatable {
   final double latinFontSize;
   final bool showTranslation;
   final double translationFontSize;
-  final String translator;
   final int selectedReciterId;
 
   const SettingsState({
@@ -40,7 +39,6 @@ class SettingsState extends Equatable {
     this.latinFontSize = 16,
     this.showTranslation = true,
     this.translationFontSize = 14,
-    this.translator = 'Kemenag-RI',
     this.selectedReciterId = 5,
   });
 
@@ -62,7 +60,6 @@ class SettingsState extends Equatable {
     double? latinFontSize,
     bool? showTranslation,
     double? translationFontSize,
-    String? translator,
     int? selectedReciterId,
   }) => SettingsState(
     themeMode: themeMode ?? this.themeMode,
@@ -82,7 +79,6 @@ class SettingsState extends Equatable {
     latinFontSize: latinFontSize ?? this.latinFontSize,
     showTranslation: showTranslation ?? this.showTranslation,
     translationFontSize: translationFontSize ?? this.translationFontSize,
-    translator: translator ?? this.translator,
     selectedReciterId: selectedReciterId ?? this.selectedReciterId,
   );
 
@@ -105,7 +101,6 @@ class SettingsState extends Equatable {
     latinFontSize,
     showTranslation,
     translationFontSize,
-    translator,
     selectedReciterId,
   ];
 }
