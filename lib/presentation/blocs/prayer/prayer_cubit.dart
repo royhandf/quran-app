@@ -42,6 +42,7 @@ class PrayerCubit extends Cubit<PrayerState> {
   }
 
   Future<void> loadPrayerTimesByDate(DateTime date) async {
+    final prev = state is PrayerLoaded ? state as PrayerLoaded : null;
     emit(PrayerLoading());
     try {
       final position = await _locationService.getCurrentPosition();
@@ -53,14 +54,20 @@ class PrayerCubit extends Cubit<PrayerState> {
         school: _hiveService.getPrayerSchool(),
         hijriAdjustment: _hiveService.getHijriAdjustment(),
       );
-      final qibla = await _repository.getQiblaDirection(
-        position.latitude,
-        position.longitude,
-      );
-      final cityName = await _locationService.getCityName(
-        position.latitude,
-        position.longitude,
-      );
+
+      // Reuse qibla & city name dari state sebelumnya jika ada,
+      // karena tidak berubah hanya karena ganti tanggal.
+      final qibla = prev?.qiblaDirection ??
+          await _repository.getQiblaDirection(
+            position.latitude,
+            position.longitude,
+          );
+      final cityName = prev?.locationName ??
+          await _locationService.getCityName(
+            position.latitude,
+            position.longitude,
+          );
+
       emit(
         PrayerLoaded(
           prayerTime: prayerTime,
