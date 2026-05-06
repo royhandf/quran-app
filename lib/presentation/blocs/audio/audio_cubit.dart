@@ -78,8 +78,9 @@ class AudioCubit extends Cubit<AudioState> {
       }
 
       _playlist = children;
-    } catch (_) {
-      // fail silently
+    } catch (e) {
+      emit(AudioError('Gagal memuat audio: ${e.toString()}'));
+      emit(const AudioIdle());
     }
   }
 
