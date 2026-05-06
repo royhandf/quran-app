@@ -25,11 +25,12 @@ class Bookmark {
   };
 
   factory Bookmark.fromMap(Map<dynamic, dynamic> map) => Bookmark(
-    id: map['id'],
-    surahId: map['surahId'],
-    surahName: map['surahName'],
-    ayahNumber: map['ayahNumber'],
-    ayahText: map['ayahText'],
-    createdAt: DateTime.parse(map['createdAt']),
+    id: map['id'] as String? ?? '',
+    surahId: map['surahId'] as int? ?? 0,
+    surahName: map['surahName'] as String? ?? '',
+    ayahNumber: map['ayahNumber'] as int? ?? 0,
+    ayahText: map['ayahText'] as String? ?? '',
+    createdAt: DateTime.tryParse(map['createdAt']?.toString() ?? '') ??
+        DateTime.now(),
   );
 }
