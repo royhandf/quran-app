@@ -1,12 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 import '../../../core/utils/arabic_utils.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../data/models/surah.dart';
-import '../../../data/local/hive_service.dart';
 import '../../blocs/quran/quran_cubit.dart';
 import '../../blocs/quran/quran_state.dart';
 import '../../blocs/bookmark/bookmark_cubit.dart';
@@ -306,37 +304,6 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                                             ),
                                             const Spacer(),
                                             IconButton(
-                                              icon: const Icon(
-                                                Icons
-                                                    .library_add_check_outlined,
-                                              ),
-                                              tooltip: 'Tandai Terakhir Baca',
-                                              onPressed: () async {
-                                                await GetIt.I<HiveService>()
-                                                    .saveLastRead(
-                                                      surahId: _currentSurah.id,
-                                                      surahName: _currentSurah
-                                                          .nameSimple,
-                                                      ayahNumber:
-                                                          ayah.verseNumber,
-                                                    );
-                                                if (context.mounted) {
-                                                  ScaffoldMessenger.of(
-                                                    context,
-                                                  ).showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(
-                                                        'Ayat ${ayah.verseNumber} ditandai sebagai terakhir baca',
-                                                      ),
-                                                      duration: const Duration(
-                                                        seconds: 2,
-                                                      ),
-                                                    ),
-                                                  );
-                                                }
-                                              },
-                                            ),
-                                            IconButton(
                                               icon: Icon(
                                                 isBookmarked
                                                     ? Icons.bookmark
@@ -495,9 +462,9 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                               );
                             },
                           ),
-                        ); // BlocListener
-                      }, // BookmarkCubit builder
-                    ); // BlocBuilder BookmarkCubit
+                        );
+                      },
+                    );
                   }
                   return const SizedBox();
                 },
@@ -707,7 +674,6 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
   }
 
   void _navigateToSurah(Surah surah) {
-    // Hentikan auto-scroll sebelum ganti surah
     if (_isAutoScrolling) {
       _stopAutoScrollTimer();
       setState(() {
@@ -720,7 +686,6 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
     setState(() {
       _currentSurah = surah;
       _ayahKeys.clear();
-      _hasScrolled = false;
       _isDownloaded = ids.contains(surah.id);
       _highlightedAyah = null;
     });

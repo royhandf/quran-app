@@ -6,8 +6,6 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../data/local/hive_service.dart';
 import '../../blocs/quran/quran_cubit.dart';
 import '../../blocs/quran/quran_state.dart';
-import '../../blocs/bookmark/bookmark_cubit.dart';
-import '../../blocs/bookmark/bookmark_state.dart';
 import '../../blocs/audio/audio_cubit.dart';
 import 'surah_detail_screen.dart';
 
@@ -17,22 +15,18 @@ class SurahListScreen extends StatefulWidget {
   State<SurahListScreen> createState() => _SurahListScreenState();
 }
 
-class _SurahListScreenState extends State<SurahListScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _SurahListScreenState extends State<SurahListScreen> {
   final _searchController = TextEditingController();
   bool _isSearching = false;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
     context.read<QuranCubit>().loadSurahs();
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -78,9 +72,6 @@ class _SurahListScreenState extends State<SurahListScreen>
                 ),
                 onChanged: (query) {
                   context.read<QuranCubit>().searchSurahs(query);
-                  if (_tabController.index != 0) {
-                    _tabController.animateTo(0);
-                  }
                 },
               )
             : Row(
@@ -108,25 +99,8 @@ class _SurahListScreenState extends State<SurahListScreen>
             },
           ),
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: AppColors.primary,
-          unselectedLabelColor: AppColors.textSecondary(context),
-          indicatorColor: AppColors.primary,
-          labelStyle: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 13,
-          ),
-          tabs: const [
-            Tab(text: 'SURAH'),
-            Tab(text: 'BOOKMARK'),
-          ],
-        ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [_buildSurahTab(), _buildBookmarkTab()],
-      ),
+      body: _buildSurahList(),
     );
   }
 
@@ -151,7 +125,7 @@ class _SurahListScreenState extends State<SurahListScreen>
     );
   }
 
-  Widget _buildSurahTab() {
+  Widget _buildSurahList() {
     return BlocConsumer<QuranCubit, QuranState>(
       listener: (context, state) {
         if (state is SurahsLoaded && state.errorMessage != null) {
@@ -208,8 +182,7 @@ class _SurahListScreenState extends State<SurahListScreen>
               final surah = state.surahs[index];
               final isLastRead =
                   lastRead != null && lastRead['surahId'] == surah.id;
-              final isDownloading =
-                  state.downloadingSurahId == surah.id;
+              final isDownloading = state.downloadingSurahId == surah.id;
               return Container(
                 color: isLastRead
                     ? AppColors.primary.withValues(alpha: 0.08)
@@ -299,106 +272,6 @@ class _SurahListScreenState extends State<SurahListScreen>
                     });
                   },
                 ),
-              );
-            },
-          );
-        }
-        return const SizedBox();
-      },
-    );
-  }
-
-  Widget _buildBookmarkTab() {
-    return BlocBuilder<BookmarkCubit, BookmarkState>(
-      builder: (context, state) {
-        if (state is BookmarkLoaded) {
-          if (state.bookmarks.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.bookmark_border,
-                    size: 64,
-                    color: AppColors.textSecondary(context),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Belum ada bookmark',
-                    style: AppTextStyles.bodyMedium(context),
-                  ),
-                ],
-              ),
-            );
-          }
-          return ListView.separated(
-            itemCount: state.bookmarks.length,
-            separatorBuilder: (_, _) =>
-                Divider(height: 1, color: AppColors.dividerColor(context)),
-            itemBuilder: (context, index) {
-              final bm = state.bookmarks[index];
-              return ListTile(
-                leading: const Icon(Icons.bookmark, color: AppColors.primary),
-                title: Text(
-                  bm.surahName,
-                  style: AppTextStyles.bodyLarge(context),
-                ),
-                subtitle: Text(
-                  'Ayat ${bm.ayahNumber}',
-                  style: AppTextStyles.bodySmall(context),
-                ),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  onPressed: () => context.read<BookmarkCubit>().toggleBookmark(
-                    surahId: bm.surahId,
-                    surahName: bm.surahName,
-                    ayahNumber: bm.ayahNumber,
-                    ayahText: bm.ayahText,
-                  ),
-                ),
-                onTap: () {
-                  final surah = context.read<QuranCubit>().findSurahById(
-                    bm.surahId,
-                  );
-                  if (surah != null) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => MultiBlocProvider(
-                          providers: [
-                            BlocProvider(
-                              create: (_) =>
-                                  QuranCubit(
-                                    context.read<QuranCubit>().repository,
-                                  )..loadVerses(surah),
-                            ),
-                            BlocProvider(
-                              create: (_) => AudioCubit(
-                                context.read<QuranCubit>().repository,
-                              ),
-                            ),
-                          ],
-                          child: SurahDetailScreen(
-                            surah: surah,
-                            initialAyah: bm.ayahNumber,
-                            allSurahs: context.read<QuranCubit>().allSurahs,
-                          ),
-                        ),
-                      ),
-                    ).then((_) {
-                      if (!context.mounted) return;
-                      context.read<QuranCubit>().refreshDownloadStatus();
-                    });
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Data surah belum dimuat. Kembali ke halaman utama terlebih dahulu.',
-                        ),
-                      ),
-                    );
-                  }
-                },
               );
             },
           );

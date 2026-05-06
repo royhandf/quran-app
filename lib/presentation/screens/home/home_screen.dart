@@ -3,8 +3,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/di/injection.dart';
-import '../../../data/local/hive_service.dart';
+import '../../../data/models/bookmark.dart';
+import '../../blocs/bookmark/bookmark_cubit.dart';
+import '../../blocs/bookmark/bookmark_state.dart';
 import '../../blocs/prayer/prayer_cubit.dart';
 import '../../blocs/prayer/prayer_state.dart';
 import '../quran/surah_list_screen.dart';
@@ -24,7 +25,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _shimmerCtrl;
-  Map<String, dynamic>? _lastRead;
   Timer? _countdownTimer;
 
   @override
@@ -34,7 +34,6 @@ class _HomeScreenState extends State<HomeScreen>
       vsync: this,
       duration: const Duration(seconds: 3),
     )..repeat();
-    _loadLastRead();
 
     _countdownTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) setState(() {});
@@ -46,13 +45,8 @@ class _HomeScreenState extends State<HomeScreen>
         if (prayerState is PrayerInitial) {
           context.read<PrayerCubit>().loadPrayerTimes();
         }
+        context.read<BookmarkCubit>().loadBookmarks();
       }
-    });
-  }
-
-  void _loadLastRead() {
-    setState(() {
-      _lastRead = getIt<HiveService>().getLastRead();
     });
   }
 
@@ -83,7 +77,9 @@ class _HomeScreenState extends State<HomeScreen>
         transitionDuration: const Duration(milliseconds: 300),
       ),
     ).then((_) {
-      if (mounted) _loadLastRead();
+      if (mounted) {
+        context.read<BookmarkCubit>().loadBookmarks();
+      }
     });
   }
 
@@ -145,10 +141,19 @@ class _HomeScreenState extends State<HomeScreen>
                   const SizedBox(height: 10),
                   _buildPrayerCard(),
                   const SizedBox(height: 24),
-                  if (_lastRead != null) ...[
-                    _buildLastReadBanner(),
-                    const SizedBox(height: 24),
-                  ],
+                  BlocBuilder<BookmarkCubit, BookmarkState>(
+                    builder: (context, bmState) {
+                      if (bmState is BookmarkLoaded && bmState.bookmarks.isNotEmpty) {
+                        return Column(
+                          children: [
+                            _buildLastReadBanner(bmState.bookmarks.first),
+                            const SizedBox(height: 24),
+                          ],
+                        );
+                      }
+                      return const SizedBox();
+                    },
+                  ),
                   _buildMenuSection(),
                   const SizedBox(height: 40),
                 ],
@@ -457,7 +462,7 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildLastReadBanner() {
+  Widget _buildLastReadBanner(Bookmark bookmark) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: GestureDetector(
@@ -484,7 +489,7 @@ class _HomeScreenState extends State<HomeScreen>
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
-                  Icons.menu_book_outlined,
+                  Icons.bookmark_rounded,
                   color: AppColors.gold,
                   size: 22,
                 ),
@@ -495,7 +500,7 @@ class _HomeScreenState extends State<HomeScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Lanjut Membaca',
+                      'Penanda Terakhir',
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 11,
@@ -504,7 +509,7 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                     ),
                     Text(
-                      _lastRead!['surahName'] ?? 'Al-Fatihah',
+                      bookmark.surahName,
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 15,
@@ -516,7 +521,7 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
               ),
               Text(
-                'Ayat ${_lastRead!['ayahNumber'] ?? 1}',
+                'Ayat ${bookmark.ayahNumber}',
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 12,
@@ -605,9 +610,9 @@ class _HomeScreenState extends State<HomeScreen>
             children: [
               Expanded(
                 child: _buildMenuCard(
-                  icon: Icons.history,
-                  label: 'Terakhir Baca',
-                  subtitle: 'Riwayat',
+                  icon: Icons.bookmark_rounded,
+                  label: 'Penanda',
+                  subtitle: 'Ayat Ditandai',
                   accentColor: const Color(0xFFD4AF37),
                   onTap: () => _navigate(const LastReadScreen()),
                 ),

@@ -1,5 +1,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/bookmark.dart';
+import '../models/prayer_time.dart';
+import '../../presentation/blocs/prayer/prayer_state.dart';
 
 class HiveService {
   static const String bookmarkBox = 'bookmark';
@@ -7,6 +9,7 @@ class HiveService {
   static const String lastReadKey = 'last_read';
   static const String alarmBox = 'prayer_alarms';
   static const String versesBox = 'quran_verses';
+  static const String _prayerCacheKey = 'cached_prayer';
   static Future<void> init() async {
     await Hive.initFlutter();
     await Hive.openBox<Map>(bookmarkBox);
@@ -112,5 +115,54 @@ class HiveService {
 
   Set<int> getDownloadedSurahIds() {
     return _versesBox.keys.cast<int>().toSet();
+  }
+
+  void cachePrayerData(PrayerLoaded data) {
+    _settingsBox.put(_prayerCacheKey, {
+      'imsak': data.prayerTime.imsak,
+      'fajr': data.prayerTime.fajr,
+      'dhuhr': data.prayerTime.dhuhr,
+      'asr': data.prayerTime.asr,
+      'maghrib': data.prayerTime.maghrib,
+      'isha': data.prayerTime.isha,
+      'sunrise': data.prayerTime.sunrise,
+      'date': data.prayerTime.date,
+      'hijriDate': data.prayerTime.hijriDate,
+      'qibla': data.qiblaDirection,
+      'cityName': data.locationName,
+      'cachedAt': DateTime.now().toIso8601String(),
+    });
+  }
+
+  PrayerLoaded? getCachedPrayerData() {
+    final raw = _settingsBox.get(_prayerCacheKey);
+    if (raw == null || raw is! Map) return null;
+
+    final map = Map<String, dynamic>.from(raw);
+
+    final cachedAt = DateTime.tryParse(map['cachedAt'] ?? '');
+    if (cachedAt == null) return null;
+    final now = DateTime.now();
+    if (cachedAt.year != now.year ||
+        cachedAt.month != now.month ||
+        cachedAt.day != now.day) {
+      return null;
+    }
+
+    return PrayerLoaded(
+      prayerTime: PrayerTime(
+        imsak: map['imsak'] ?? '',
+        fajr: map['fajr'] ?? '',
+        dhuhr: map['dhuhr'] ?? '',
+        asr: map['asr'] ?? '',
+        maghrib: map['maghrib'] ?? '',
+        isha: map['isha'] ?? '',
+        sunrise: map['sunrise'] ?? '',
+        date: map['date'] ?? '',
+        hijriDate: map['hijriDate'] ?? '',
+      ),
+      qiblaDirection: map['qibla'] as double?,
+      locationName: map['cityName'] ?? '',
+    );
   }
 }

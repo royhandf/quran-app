@@ -9,6 +9,7 @@ class BookmarkCubit extends Cubit<BookmarkState> {
 
   void loadBookmarks() {
     final bookmarks = _hiveService.getBookmarks();
+    bookmarks.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     emit(BookmarkLoaded(bookmarks));
   }
 

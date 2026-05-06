@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../../core/services/location_service.dart';
 import '../../../data/local/hive_service.dart';
 import '../../../data/repositories/prayer_repository.dart';
@@ -13,32 +14,54 @@ class PrayerCubit extends Cubit<PrayerState> {
     : super(PrayerInitial());
 
   Future<void> loadPrayerTimes() async {
-    emit(PrayerLoading());
+    final cached = _hiveService.getCachedPrayerData();
+    if (cached != null && state is! PrayerLoaded) {
+      emit(cached);
+    }
+
+    if (state is! PrayerLoaded) emit(PrayerLoading());
+
     try {
       final position = await _locationService.getCurrentPosition();
-      final lat = position.latitude;
-      final lng = position.longitude;
-
-      final prayerTime = await _repository.getPrayerTimes(
-        lat,
-        lng,
-        method: _hiveService.getPrayerMethod(),
-        school: _hiveService.getPrayerSchool(),
-        hijriAdjustment: _hiveService.getHijriAdjustment(),
-      );
-      final qibla = await _repository.getQiblaDirection(lat, lng);
-      final cityName = await _locationService.getCityName(lat, lng);
-
-      emit(
-        PrayerLoaded(
-          prayerTime: prayerTime,
-          qiblaDirection: qibla,
-          locationName: cityName,
-        ),
-      );
+      final result = await _fetchPrayerData(position);
+      _hiveService.cachePrayerData(result);
+      emit(result);
     } catch (e) {
-      emit(PrayerError(e.toString()));
+      if (state is! PrayerLoaded) emit(PrayerError(e.toString()));
     }
+  }
+
+  Future<PrayerLoaded> _fetchPrayerData(
+    Position position, {
+    DateTime? date,
+    PrayerLoaded? reuse,
+  }) async {
+    final lat = position.latitude;
+    final lng = position.longitude;
+
+    final prayerTime = await _repository.getPrayerTimes(
+      lat,
+      lng,
+      date: date,
+      method: _hiveService.getPrayerMethod(),
+      school: _hiveService.getPrayerSchool(),
+      hijriAdjustment: _hiveService.getHijriAdjustment(),
+    );
+
+    final qiblaFuture = reuse?.qiblaDirection != null
+        ? Future.value(reuse!.qiblaDirection)
+        : _repository.getQiblaDirection(lat, lng);
+    final cityFuture = reuse?.locationName.isNotEmpty == true
+        ? Future.value(reuse!.locationName)
+        : _locationService.getCityName(lat, lng);
+
+    final results = await Future.wait([qiblaFuture, cityFuture]);
+
+    return PrayerLoaded(
+      prayerTime: prayerTime,
+      qiblaDirection: results[0] as double?,
+      locationName: results[1] as String,
+    );
   }
 
   Future<void> loadPrayerTimesByDate(DateTime date) async {
@@ -46,35 +69,8 @@ class PrayerCubit extends Cubit<PrayerState> {
     emit(PrayerLoading());
     try {
       final position = await _locationService.getCurrentPosition();
-      final prayerTime = await _repository.getPrayerTimes(
-        position.latitude,
-        position.longitude,
-        date: date,
-        method: _hiveService.getPrayerMethod(),
-        school: _hiveService.getPrayerSchool(),
-        hijriAdjustment: _hiveService.getHijriAdjustment(),
-      );
-
-      // Reuse qibla & city name dari state sebelumnya jika ada,
-      // karena tidak berubah hanya karena ganti tanggal.
-      final qibla = prev?.qiblaDirection ??
-          await _repository.getQiblaDirection(
-            position.latitude,
-            position.longitude,
-          );
-      final cityName = prev?.locationName ??
-          await _locationService.getCityName(
-            position.latitude,
-            position.longitude,
-          );
-
-      emit(
-        PrayerLoaded(
-          prayerTime: prayerTime,
-          qiblaDirection: qibla,
-          locationName: cityName,
-        ),
-      );
+      final result = await _fetchPrayerData(position, date: date, reuse: prev);
+      emit(result);
     } catch (e) {
       emit(PrayerError(e.toString()));
     }
