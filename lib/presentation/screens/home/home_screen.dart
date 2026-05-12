@@ -143,7 +143,8 @@ class _HomeScreenState extends State<HomeScreen>
                   const SizedBox(height: 24),
                   BlocBuilder<BookmarkCubit, BookmarkState>(
                     builder: (context, bmState) {
-                      if (bmState is BookmarkLoaded && bmState.bookmarks.isNotEmpty) {
+                      if (bmState is BookmarkLoaded &&
+                          bmState.bookmarks.isNotEmpty) {
                         return Column(
                           children: [
                             _buildLastReadBanner(bmState.bookmarks.first),
@@ -597,8 +598,8 @@ class _HomeScreenState extends State<HomeScreen>
               Expanded(
                 child: _buildMenuCard(
                   icon: Icons.self_improvement,
-                  label: 'Dzikir & Doa',
-                  subtitle: 'Doa Harian',
+                  label: 'Dzikir',
+                  subtitle: 'Pagi, Petang & Sholat',
                   accentColor: const Color(0xFFE8A87C),
                   onTap: () => _navigate(const DzikirScreen()),
                 ),
