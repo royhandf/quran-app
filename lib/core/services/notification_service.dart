@@ -27,7 +27,7 @@ class NotificationService {
       tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
     }
 
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings('@mipmap/launcher_icon');
     await _plugin.initialize(
       settings: const InitializationSettings(android: androidSettings),
     );

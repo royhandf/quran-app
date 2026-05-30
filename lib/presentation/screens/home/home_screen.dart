@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/update_service.dart';
 import '../../../data/models/bookmark.dart';
 import '../../blocs/bookmark/bookmark_cubit.dart';
 import '../../blocs/bookmark/bookmark_state.dart';
@@ -46,6 +47,11 @@ class _HomeScreenState extends State<HomeScreen>
           context.read<PrayerCubit>().loadPrayerTimes();
         }
         context.read<BookmarkCubit>().loadBookmarks();
+
+        // Cek update dari Play Store, tampilkan dialog jika ada
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) UpdateService.checkAndShowDialog(context);
+        });
       }
     });
   }

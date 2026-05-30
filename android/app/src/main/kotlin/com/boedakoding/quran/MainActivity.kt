@@ -1,4 +1,4 @@
-package com.royhandf.quran_app
+package com.boedakoding.quran
 
 import io.flutter.embedding.android.FlutterActivity
 
