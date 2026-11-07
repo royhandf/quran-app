@@ -76,10 +76,9 @@ class PrayerCard extends StatelessWidget {
                     Text(_city, style: AppTokens.prayerCity),
                     const Spacer(),
                     Flexible(
-                      child: Text(
-                        _hijri,
-                        style: AppTokens.hijriDate,
-                        overflow: TextOverflow.ellipsis,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(_hijri, style: AppTokens.hijriDate),
                       ),
                     ),
                   ],
