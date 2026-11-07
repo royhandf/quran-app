@@ -51,10 +51,11 @@ Prioritas: **P0** = sebelum rilis, **P1** = setelah rilis, **P2** = ide.
 | 7 | Audio background + kontrol lock screen | P1 | M | `audio_cubit.dart`, perlu `audio_service` |
 | 8 | Download audio per surah untuk offline | P1 | M | `quran_repository.dart`, `audio_cubit.dart` |
 | 9 | Tajwid berwarna (butuh dataset tajwid; setting sudah tersimpan) | P2 | L | `settings_screen.dart`, `surah_detail_screen.dart` |
-| 10 | Tafsir per ayat | P2 | M | model + repository baru |
-| 11 | Widget home screen (jadwal sholat berikutnya) | P2 | M | perlu `home_widget` |
-| 12 | Dukungan iOS | P2 | L | folder `ios/` belum ada |
-| 13 | Lokalisasi (id/en) | P2 | M | seluruh string UI masih hardcode |
+| 10 | **Dark mode varian untuk home redesign** — palet home baru saat ini light-only, sesuai keputusan desain (light dulu, dark belakangan) | P1 | S | `app_tokens.dart`, `home_screen.dart`, komponen `widgets/home/` |
+| 11 | Tafsir per ayat | P2 | M | model + repository baru |
+| 12 | Widget home screen (jadwal sholat berikutnya) | P2 | M | perlu `home_widget` |
+| 13 | Dukungan iOS | P2 | L | folder `ios/` belum ada |
+| 14 | Lokalisasi (id/en) | P2 | M | seluruh string UI masih hardcode |
 
 ## Utang teknis / known issues
 

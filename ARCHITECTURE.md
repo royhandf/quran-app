@@ -116,7 +116,22 @@ Box yang sudah dipakai — jangan tambah box baru tanpa memperbarui daftar ini:
 - Widget test minimal memastikan layar utama bisa dirender tanpa exception.
 - `flutter test` harus hijau sebelum merge. Jangan meninggalkan test bawaan yang gagal.
 
-## 10. Definisi selesai (Definition of Done)
+## 10. Git dan commit
+
+- **Commit hanya dibuat saat diminta eksplisit.** Jangan pernah commit otomatis di
+  akhir tugas.
+- Sebelum commit: perlihatkan daftar file yang akan masuk (`git status --short`) dan
+  pastikan tidak ada file yang tidak seharusnya — artefak build, kredensial
+  (`.env`, `key.properties`, keystore), `local.properties`, dan file kerja pribadi
+  (gambar referensi, catatan, dump sementara).
+- `git add -A` hanya boleh dipakai setelah isi working tree diperiksa. File baru yang
+  bukan bagian dari kode (referensi desain, catatan pribadi) ditanyakan dulu kepada
+  pemilik proyek sebelum masuk commit.
+- Pesan commit menjelaskan **kenapa**, bukan hanya daftar file.
+- Commit dibuat per langkah yang kohesif (satu topik satu commit), bukan satu
+  commit raksasa campur aduk.
+
+## 11. Definisi selesai (Definition of Done)
 
 1. `flutter analyze` bersih.
 2. `flutter test` hijau.
@@ -125,3 +140,5 @@ Box yang sudah dipakai — jangan tambah box baru tanpa memperbarui daftar ini:
 5. Perubahan perilaku dicatat di `notes.md` bila menyentuh backlog/rilis.
 6. `flutter build appbundle --release` berhasil bila perubahan menyentuh Android,
    dependency, atau konfigurasi rilis.
+7. Perubahan UI mematuhi [DESIGN.md](./DESIGN.md).
+8. Tidak ada commit yang dibuat tanpa permintaan eksplisit.

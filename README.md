@@ -74,7 +74,8 @@ Only non-secret configuration belongs in `.env` — the file is bundled into the
 
 ## 📚 Documentation
 
-- [ARCHITECTURE.md](./ARCHITECTURE.md) — layer rules, state management, DI, storage, and code conventions
+- [ARCHITECTURE.md](./ARCHITECTURE.md) — layer rules, state management, DI, storage, git rules, and code conventions
+- [DESIGN.md](./DESIGN.md) — UI design rules: tokens, fonts, components, SVG, accessibility, verification
 - [notes.md](./notes.md) — current status, technical debt, feature backlog, and Play Store release checklist
 
 ---
