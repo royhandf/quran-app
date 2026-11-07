@@ -7,7 +7,7 @@ import 'data/local/hive_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
+  await dotenv.load(fileName: ".env", isOptional: true);
   await HiveService.init();
   await NotificationService.init();
   configureDependencies();

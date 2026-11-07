@@ -3,6 +3,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tzdata;
 import '../../data/local/hive_service.dart';
 import '../../data/models/prayer_time.dart';
+import '../constants/prayer_alarm_ids.dart';
 
 class NotificationService {
   static final _plugin = FlutterLocalNotificationsPlugin();
@@ -27,7 +28,7 @@ class NotificationService {
       tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
     }
 
-    const androidSettings = AndroidInitializationSettings('@mipmap/launcher_icon');
+    const androidSettings = AndroidInitializationSettings('@drawable/ic_stat_adzan');
     await _plugin.initialize(
       settings: const InitializationSettings(android: androidSettings),
     );
@@ -39,9 +40,9 @@ class NotificationService {
     await androidPlugin?.requestNotificationsPermission();
   }
 
-  /// Schedule satu adzan. Jika waktu sudah lewat, schedule ke hari berikutnya.
-  static Future<void> scheduleAdzan({
-    required int id,
+  /// Jadwalkan adzan untuk kemunculan hari ini (jika belum lewat) dan besok.
+  /// Dua kemunculan menjaga alarm tetap berbunyi walau app tidak dibuka sehari.
+  static Future<void> schedulePrayerAhead({
     required String prayerName,
     required String time,
   }) async {
@@ -49,24 +50,36 @@ class NotificationService {
     if (parts.length < 2) return;
 
     final now = DateTime.now();
-    var scheduledDate = DateTime(
+    var first = DateTime(
       now.year,
       now.month,
       now.day,
       int.parse(parts[0]),
       int.parse(parts[1]),
     );
-
-    // Kalau sudah lewat, jadwalkan hari berikutnya
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    if (!first.isAfter(now)) {
+      first = first.add(const Duration(days: 1));
     }
 
+    final baseId = PrayerAlarmIds.forPrayer(prayerName);
+    await _scheduleAt(id: baseId, prayerName: prayerName, when: first);
+    await _scheduleAt(
+      id: baseId + PrayerAlarmIds.nextDayOffset,
+      prayerName: prayerName,
+      when: first.add(const Duration(days: 1)),
+    );
+  }
+
+  static Future<void> _scheduleAt({
+    required int id,
+    required String prayerName,
+    required DateTime when,
+  }) async {
     await _plugin.zonedSchedule(
       id: id,
       title: 'Waktu $prayerName',
       body: 'Sudah masuk waktu $prayerName',
-      scheduledDate: tz.TZDateTime.from(scheduledDate, tz.local),
+      scheduledDate: tz.TZDateTime.from(when, tz.local),
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'adzan_channel',
@@ -81,40 +94,30 @@ class NotificationService {
     );
   }
 
+  /// Batalkan alarm hari ini dan besok untuk satu sholat.
+  static Future<void> cancelPrayer(String prayerName) async {
+    final baseId = PrayerAlarmIds.forPrayer(prayerName);
+    await _plugin.cancel(id: baseId);
+    await _plugin.cancel(id: baseId + PrayerAlarmIds.nextDayOffset);
+  }
+
   /// Schedule semua sholat yang di-enable user, cancel yang di-disable.
   static Future<void> scheduleAllPrayers(
     List<PrayerItem> prayers,
     HiveService hiveService,
   ) async {
-    const nameToId = {
-      'Fajr': 1, 'Sunrise': 2, 'Dhuhr': 3, 'Asr': 4, 'Maghrib': 5, 'Isha': 6,
-      'Subuh': 1, 'Terbit': 2, 'Dzuhur': 3, 'Ashar': 4, 'Isya': 6,
-    };
-
     for (final prayer in prayers) {
       // Terbit / Sunrise tidak perlu notifikasi
       if (prayer.name == 'Terbit' || prayer.name == 'Sunrise') continue;
 
-      final id = nameToId[prayer.name] ?? prayer.name.hashCode.abs() % 100 + 10;
-      final enabled = hiveService.isAlarmEnabled(prayer.name);
-
-      if (enabled) {
-        await scheduleAdzan(
-          id: id,
+      if (hiveService.isAlarmEnabled(prayer.name)) {
+        await schedulePrayerAhead(
           prayerName: prayer.name,
           time: prayer.time,
         );
       } else {
-        await cancelAdzan(id);
+        await cancelPrayer(prayer.name);
       }
     }
-  }
-
-  static Future<void> cancelAdzan(int id) async {
-    await _plugin.cancel(id: id);
-  }
-
-  static Future<void> cancelAll() async {
-    await _plugin.cancelAll();
   }
 }

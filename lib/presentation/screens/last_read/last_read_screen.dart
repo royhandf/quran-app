@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
-import '../../../data/repositories/quran_repository.dart';
 import '../../../data/models/bookmark.dart';
-import '../../../core/di/injection.dart';
 import '../../blocs/audio/audio_cubit.dart';
 import '../../blocs/quran/quran_cubit.dart';
 import '../../blocs/bookmark/bookmark_cubit.dart';
@@ -180,7 +178,7 @@ class _LastReadScreenState extends State<LastReadScreen> {
 
     if (surah != null) {
       final reciterId = context.read<SettingsCubit>().state.selectedReciterId;
-      final repo = getIt<QuranRepository>();
+      final repo = quranCubit.repository;
       Navigator.push(
         context,
         MaterialPageRoute(

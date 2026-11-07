@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
-import '../../../data/repositories/quran_repository.dart';
-import '../../../core/di/injection.dart';
 import '../../blocs/audio/audio_cubit.dart';
 import '../../blocs/quran/quran_cubit.dart';
 import '../../blocs/quran/quran_state.dart';
@@ -263,7 +261,7 @@ class _SearchScreenState extends State<SearchScreen>
   void _openSurah(BuildContext context, dynamic s) {
     final reciterId =
         context.read<SettingsCubit>().state.selectedReciterId;
-    final repo = getIt<QuranRepository>();
+    final repository = context.read<QuranCubit>().repository;
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -271,13 +269,11 @@ class _SearchScreenState extends State<SearchScreen>
           providers: [
             BlocProvider(
               create: (_) =>
-                  QuranCubit(
-                    context.read<QuranCubit>().repository,
-                  )..loadVerses(s),
+                  QuranCubit(repository)..loadVerses(s),
             ),
             BlocProvider(
               create: (_) =>
-                  AudioCubit(repo)..loadSurahAudio(s.id, reciterId),
+                  AudioCubit(repository)..loadSurahAudio(s.id, reciterId),
             ),
           ],
           child: SurahDetailScreen(

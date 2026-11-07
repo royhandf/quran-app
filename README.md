@@ -38,7 +38,7 @@ A feature-rich Al-Quran & Islamic companion app built with Flutter. Designed wit
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Flutter SDK `^3.10.4`
+- Flutter SDK `>=3.38.4` (Dart `^3.10.4`)
 - Android device or emulator (iOS not configured)
 
 ### Setup
@@ -64,9 +64,18 @@ flutter run
 Create a `.env` file in the project root:
 
 ```env
-QURAN_API_BASE_URL=https://your-api-url.com
-PRAYER_API_BASE_URL=https://your-prayer-api.com
+EQURAN_API_BASE_URL=https://equran.id/api/v2
+ALADHAN_API_BASE_URL=https://api.aladhan.com/v1
 ```
+
+Only non-secret configuration belongs in `.env` — the file is bundled into the APK/AAB.
+
+---
+
+## 📚 Documentation
+
+- [ARCHITECTURE.md](./ARCHITECTURE.md) — layer rules, state management, DI, storage, and code conventions
+- [notes.md](./notes.md) — current status, technical debt, feature backlog, and Play Store release checklist
 
 ---
 

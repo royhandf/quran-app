@@ -15,15 +15,24 @@ class PrayerLoaded extends PrayerState {
   final PrayerTime prayerTime;
   final double? qiblaDirection;
   final String locationName;
+  final Set<String> enabledAlarms;
 
   const PrayerLoaded({
     required this.prayerTime,
     this.qiblaDirection,
     this.locationName = '',
+    this.enabledAlarms = const {},
   });
 
+  bool isAlarmEnabled(String prayerName) => enabledAlarms.contains(prayerName);
+
   @override
-  List<Object?> get props => [prayerTime, qiblaDirection, locationName];
+  List<Object?> get props => [
+    prayerTime,
+    qiblaDirection,
+    locationName,
+    enabledAlarms,
+  ];
 }
 
 class PrayerError extends PrayerState {

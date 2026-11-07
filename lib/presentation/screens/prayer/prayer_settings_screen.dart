@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
-import '../../../data/local/hive_service.dart';
 import '../../blocs/prayer/prayer_cubit.dart';
 
 class PrayerSettingsScreen extends StatefulWidget {
@@ -13,7 +11,6 @@ class PrayerSettingsScreen extends StatefulWidget {
 }
 
 class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
-  late final HiveService _hiveService;
 
   static const List<Map<String, dynamic>> _methods = [
     {'id': 20, 'name': 'Kemenag - Indonesia'},
@@ -32,12 +29,6 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
     {'id': 16, 'name': 'UOIF - France'},
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    _hiveService = GetIt.instance<HiveService>();
-  }
-
   String _getMethodName(int id) {
     return _methods.firstWhere(
           (m) => m['id'] == id,
@@ -48,10 +39,11 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final adjustment = _hiveService.getHijriAdjustment();
-    final method = _hiveService.getPrayerMethod();
-    final school = _hiveService.getPrayerSchool();
-    final use12h = _hiveService.getUse12HourFormat();
+    final cubit = context.read<PrayerCubit>();
+    final adjustment = cubit.hijriAdjustment;
+    final method = cubit.prayerMethod;
+    final school = cubit.prayerSchool;
+    final use12h = cubit.use12HourFormat;
 
     return Scaffold(
       backgroundColor: AppColors.background(context),
@@ -169,7 +161,7 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
                               alpha: 0.2,
                             ),
                             onChanged: (v) {
-                              _hiveService.setHijriAdjustment(v.toInt());
+                              cubit.setHijriAdjustment(v.toInt());
                               setState(() {});
                               _reloadPrayerTimes();
                             },
@@ -204,7 +196,8 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
   }
 
   void _showMethodDialog() {
-    final currentMethod = _hiveService.getPrayerMethod();
+    final cubit = context.read<PrayerCubit>();
+    final currentMethod = cubit.prayerMethod;
     _showOptionsBottomSheet(
       title: 'Metode Perhitungan',
       children: _methods.map((m) {
@@ -213,7 +206,7 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
           label: m['name'] as String,
           isSelected: isSelected,
           onTap: () {
-            _hiveService.setPrayerMethod(m['id'] as int);
+            cubit.setPrayerMethod(m['id'] as int);
             Navigator.pop(context);
             setState(() {});
             _reloadPrayerTimes();
@@ -224,7 +217,8 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
   }
 
   void _showSchoolDialog() {
-    final currentSchool = _hiveService.getPrayerSchool();
+    final cubit = context.read<PrayerCubit>();
+    final currentSchool = cubit.prayerSchool;
     final schools = [
       {
         'id': 0,
@@ -242,7 +236,7 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
           subtitle: s['sub'] as String,
           isSelected: isSelected,
           onTap: () {
-            _hiveService.setPrayerSchool(s['id'] as int);
+            cubit.setPrayerSchool(s['id'] as int);
             Navigator.pop(context);
             setState(() {});
             _reloadPrayerTimes();
@@ -253,7 +247,8 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
   }
 
   void _showTimeFormatDialog() {
-    final current = _hiveService.getUse12HourFormat();
+    final cubit = context.read<PrayerCubit>();
+    final current = cubit.use12HourFormat;
     final formats = [
       {'value': false, 'name': '24 Jam', 'sub': 'Contoh: 14:30'},
       {'value': true, 'name': '12 Jam (AM/PM)', 'sub': 'Contoh: 2:30 PM'},
@@ -267,7 +262,7 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
           subtitle: f['sub'] as String,
           isSelected: isSelected,
           onTap: () {
-            _hiveService.setUse12HourFormat(f['value'] as bool);
+            cubit.setUse12HourFormat(f['value'] as bool);
             Navigator.pop(context);
             setState(() {});
           },

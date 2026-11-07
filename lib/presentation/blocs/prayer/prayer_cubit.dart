@@ -3,6 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import '../../../core/services/location_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../data/local/hive_service.dart';
+import '../../../data/models/prayer_time.dart';
 import '../../../data/repositories/prayer_repository.dart';
 import 'prayer_state.dart';
 
@@ -67,6 +68,58 @@ class PrayerCubit extends Cubit<PrayerState> {
       prayerTime: prayerTime,
       qiblaDirection: results[0] as double?,
       locationName: results[1] as String,
+      enabledAlarms: _enabledAlarmNames(prayerTime),
+    );
+  }
+
+  Set<String> _enabledAlarmNames(PrayerTime prayerTime) => {
+    for (final prayer in prayerTime.toList())
+      if (_hiveService.isAlarmEnabled(prayer.name)) prayer.name,
+  };
+
+  bool get use12HourFormat => _hiveService.getUse12HourFormat();
+  int get prayerMethod => _hiveService.getPrayerMethod();
+  int get prayerSchool => _hiveService.getPrayerSchool();
+  int get hijriAdjustment => _hiveService.getHijriAdjustment();
+
+  Future<void> setPrayerMethod(int method) =>
+      _hiveService.setPrayerMethod(method);
+
+  Future<void> setPrayerSchool(int school) =>
+      _hiveService.setPrayerSchool(school);
+
+  Future<void> setHijriAdjustment(int days) =>
+      _hiveService.setHijriAdjustment(days);
+
+  Future<void> setUse12HourFormat(bool enabled) =>
+      _hiveService.setUse12HourFormat(enabled);
+
+  Future<void> togglePrayerAlarm(PrayerItem prayer) async {
+    final current = state;
+    if (current is! PrayerLoaded) return;
+
+    final enabled = !current.isAlarmEnabled(prayer.name);
+    await _hiveService.setAlarmEnabled(prayer.name, enabled);
+
+    if (enabled) {
+      await NotificationService.schedulePrayerAhead(
+        prayerName: prayer.name,
+        time: prayer.time,
+      );
+    } else {
+      await NotificationService.cancelPrayer(prayer.name);
+    }
+
+    final alarms = Set<String>.from(current.enabledAlarms);
+    enabled ? alarms.add(prayer.name) : alarms.remove(prayer.name);
+
+    emit(
+      PrayerLoaded(
+        prayerTime: current.prayerTime,
+        qiblaDirection: current.qiblaDirection,
+        locationName: current.locationName,
+        enabledAlarms: alarms,
+      ),
     );
   }
 

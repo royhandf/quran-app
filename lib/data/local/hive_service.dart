@@ -149,20 +149,26 @@ class HiveService {
       return null;
     }
 
+    final prayerTime = PrayerTime(
+      imsak: map['imsak'] ?? '',
+      fajr: map['fajr'] ?? '',
+      dhuhr: map['dhuhr'] ?? '',
+      asr: map['asr'] ?? '',
+      maghrib: map['maghrib'] ?? '',
+      isha: map['isha'] ?? '',
+      sunrise: map['sunrise'] ?? '',
+      date: map['date'] ?? '',
+      hijriDate: map['hijriDate'] ?? '',
+    );
+
     return PrayerLoaded(
-      prayerTime: PrayerTime(
-        imsak: map['imsak'] ?? '',
-        fajr: map['fajr'] ?? '',
-        dhuhr: map['dhuhr'] ?? '',
-        asr: map['asr'] ?? '',
-        maghrib: map['maghrib'] ?? '',
-        isha: map['isha'] ?? '',
-        sunrise: map['sunrise'] ?? '',
-        date: map['date'] ?? '',
-        hijriDate: map['hijriDate'] ?? '',
-      ),
+      prayerTime: prayerTime,
       qiblaDirection: map['qibla'] as double?,
       locationName: map['cityName'] ?? '',
+      enabledAlarms: {
+        for (final prayer in prayerTime.toList())
+          if (isAlarmEnabled(prayer.name)) prayer.name,
+      },
     );
   }
 }

@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 import 'package:quran_app/presentation/screens/prayer/prayer_settings_screen.dart';
 import 'package:quran_app/presentation/screens/prayer/qibla_screen.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
-import '../../../core/services/notification_service.dart';
-import '../../../data/local/hive_service.dart';
 import '../../../data/models/prayer_time.dart';
 import '../../blocs/prayer/prayer_cubit.dart';
 import '../../blocs/prayer/prayer_state.dart';
@@ -18,21 +15,10 @@ class PrayerTimesScreen extends StatefulWidget {
 }
 
 class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
-  late final HiveService _hiveService;
-
   @override
   void initState() {
     super.initState();
-    _hiveService = GetIt.instance<HiveService>();
     context.read<PrayerCubit>().loadPrayerTimes();
-  }
-
-  static int _prayerNotifId(String name) {
-    const ids = {
-      'Fajr': 1, 'Sunrise': 2, 'Dhuhr': 3, 'Asr': 4, 'Maghrib': 5, 'Isha': 6,
-      'Subuh': 1, 'Terbit': 2, 'Dzuhur': 3, 'Ashar': 4, 'Isya': 6,
-    };
-    return ids[name] ?? name.hashCode.abs() % 100 + 10;
   }
 
   @override
@@ -139,11 +125,12 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
 
   Widget _buildLoaded(
       BuildContext context, PrayerLoaded state, bool isDark) {
+    final cubit = context.read<PrayerCubit>();
     final times = state.prayerTime.toList();
     final nextIndex = state.prayerTime.getNextPrayerIndex();
     final nextPrayer = state.prayerTime.getNextPrayer();
     final timeUntil = state.prayerTime.getTimeUntilNextPrayer();
-    final use12h = _hiveService.getUse12HourFormat();
+    final use12h = cubit.use12HourFormat;
 
     return RefreshIndicator(
       onRefresh: () => context.read<PrayerCubit>().loadPrayerTimes(),
@@ -375,7 +362,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                   final p = times[index];
                   final isNext = nextIndex != -1 && index == nextIndex;
                   final isPassed = nextIndex == -1 || index < nextIndex;
-                  final alarmEnabled = _hiveService.isAlarmEnabled(p.name);
+                  final alarmEnabled = state.isAlarmEnabled(p.name);
                   final isLast = index == times.length - 1;
 
                   return _PrayerRow(
@@ -385,20 +372,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                     alarmEnabled: alarmEnabled,
                     isLast: isLast,
                     use12h: use12h,
-                    onAlarmTap: () {
-                      final enabled = !_hiveService.isAlarmEnabled(p.name);
-                      _hiveService.setAlarmEnabled(p.name, enabled);
-                      setState(() {});
-                      if (enabled) {
-                        NotificationService.scheduleAdzan(
-                          id: _prayerNotifId(p.name),
-                          prayerName: p.name,
-                          time: p.time,
-                        );
-                      } else {
-                        NotificationService.cancelAdzan(_prayerNotifId(p.name));
-                      }
-                    },
+                    onAlarmTap: () => cubit.togglePrayerAlarm(p),
                   );
                 }),
               ),

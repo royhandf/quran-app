@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
-import '../../../data/local/hive_service.dart';
 import '../../../data/models/surah.dart';
 import '../../blocs/quran/quran_cubit.dart';
 import '../../blocs/quran/quran_state.dart';
@@ -151,20 +149,16 @@ class _SurahListScreenState extends State<SurahListScreen> {
           if (state.surahs.isEmpty) {
             return _buildEmptySearch();
           }
-          final lastRead = GetIt.I<HiveService>().getLastRead();
           return ListView.builder(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
             itemCount: state.surahs.length,
             itemBuilder: (context, index) {
               final surah = state.surahs[index];
-              final isLastRead =
-                  lastRead != null && lastRead['surahId'] == surah.id;
               final isDownloading = state.downloadingSurahId == surah.id;
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: _SurahCard(
                   surah: surah,
-                  isLastRead: isLastRead,
                   isDownloading: isDownloading,
                   isDownloaded: state.downloadedIds.contains(surah.id),
                   onTap: () => _openSurah(context, surah),
@@ -273,7 +267,6 @@ class _SurahListScreenState extends State<SurahListScreen> {
 // ── Surah card ─────────────────────────────────────────────────────────────────
 class _SurahCard extends StatefulWidget {
   final Surah surah;
-  final bool isLastRead;
   final bool isDownloading;
   final bool isDownloaded;
   final VoidCallback onTap;
@@ -282,7 +275,6 @@ class _SurahCard extends StatefulWidget {
 
   const _SurahCard({
     required this.surah,
-    required this.isLastRead,
     required this.isDownloading,
     required this.isDownloaded,
     required this.onTap,
@@ -313,14 +305,10 @@ class _SurahCardState extends State<_SurahCard> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-            color: widget.isLastRead
-                ? AppColors.primary.withValues(alpha: 0.06)
-                : AppColors.card(context),
+            color: AppColors.card(context),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: widget.isLastRead
-                  ? AppColors.primary.withValues(alpha: 0.3)
-                  : AppColors.dividerColor(context),
+              color: AppColors.dividerColor(context),
               width: 1,
             ),
           ),
@@ -351,36 +339,11 @@ class _SurahCardState extends State<_SurahCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          s.nameSimple,
-                          style: AppTextStyles.bodyMedium(
-                            context,
-                          ).copyWith(fontWeight: FontWeight.w700),
-                        ),
-                        if (widget.isLastRead) ...[
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 1,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              'Terakhir',
-                              style: TextStyle(
-                                color: AppColors.primary,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
+                    Text(
+                      s.nameSimple,
+                      style: AppTextStyles.bodyMedium(
+                        context,
+                      ).copyWith(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 3),
                     Text(

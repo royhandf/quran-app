@@ -13,11 +13,12 @@ class UpdateService {
     }
   }
 
-  /// Mulai proses update via Play Store flexible update flow.
+  /// Mulai proses update via Play Store.
+  /// Immediate update menangani download sekaligus instalasi, sehingga tidak
+  /// perlu memanggil `completeFlexibleUpdate` secara manual.
   static Future<void> startUpdate() async {
     try {
-      await InAppUpdate.startFlexibleUpdate();
-      await InAppUpdate.completeFlexibleUpdate();
+      await InAppUpdate.performImmediateUpdate();
     } catch (_) {}
   }
 
