@@ -50,6 +50,7 @@ dependencies:
   just_audio: ^0.10.5
   flutter_dotenv: ^6.0.0
   in_app_update: ^4.2.3
+  flutter_svg: ^2.3.2
 
 dev_dependencies:
   flutter_test:
@@ -100,3 +101,15 @@ flutter:
     - family: Lateef
       fonts:
         - asset: assets/fonts/Lateef-Regular.ttf
+    - family: Amiri
+      fonts:
+        - asset: assets/fonts/Amiri-Regular.ttf
+        - asset: assets/fonts/Amiri-Bold.ttf
+          weight: 700
+    - family: Manrope
+      fonts:
+        - asset: assets/fonts/Manrope-Regular.ttf
+        - asset: assets/fonts/Manrope-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Manrope-Bold.ttf
+          weight: 700
