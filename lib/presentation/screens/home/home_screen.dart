@@ -205,7 +205,7 @@ class _HomeScreenState extends State<HomeScreen>
                       'ٱلْقُرْآنُ ٱلْكَرِيمُ',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontFamily: 'Amiri',
+                        fontFamily: 'ScheherazadeNew',
                         fontSize: 46,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,

@@ -923,7 +923,7 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
               child: Text(
                 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
                 style: const TextStyle(
-                  fontFamily: 'Amiri',
+                  fontFamily: 'ScheherazadeNew',
                   fontSize: 24,
                   height: 1.5,
                   fontWeight: FontWeight.w400,
