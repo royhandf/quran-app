@@ -82,6 +82,19 @@ class AppColors {
   static Color homeBannerAccent(BuildContext context) =>
       _homeIsDark(context) ? gold : forest;
 
+  /// Garis pemisah tipis di dalam kartu pengaturan
+  static Color homeDivider(BuildContext context) => _homeIsDark(context)
+      ? Colors.white.withValues(alpha: 0.08)
+      : Colors.black.withValues(alpha: 0.06);
+
+  /// Latar bottom sheet: putih di light, surface gelap di dark
+  static Color homeSheetSurface(BuildContext context) =>
+      _homeIsDark(context) ? darkHomeSurface : Colors.white;
+
+  /// Latar opsi/preview yang tidak terpilih di atas sheet
+  static Color homeOptionSurface(BuildContext context) =>
+      _homeIsDark(context) ? darkHomeStarContainer : sageLight;
+
   // Context-aware helpers
   static Color background(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark

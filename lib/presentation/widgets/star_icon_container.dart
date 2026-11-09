@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-/// Wadah ikon 44x44 berbentuk bintang dari `wadah-ikon-bintang.svg`.
-/// Warna wadah diganti lewat [containerColor]; ikon di tengah lewat [iconColor].
 class StarIconContainer extends StatelessWidget {
   final IconData icon;
   final Color containerColor;

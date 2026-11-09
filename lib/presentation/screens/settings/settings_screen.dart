@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_text_styles.dart';
+import '../../../core/constants/app_tokens.dart';
 import '../../blocs/settings/settings_cubit.dart';
 import '../../blocs/settings/settings_state.dart';
+import '../../widgets/star_icon_container.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -15,6 +17,15 @@ class SettingsScreen extends StatelessWidget {
     {'id': 3, 'name': 'Abdurrahman as-Sudais'},
     {'id': 4, 'name': 'Ibrahim Al-Dossari'},
     {'id': 6, 'name': 'Yasser Al-Dosari'},
+  ];
+
+  static const tajwidDotColors = [
+    Color(0xFFFF7043),
+    Color(0xFF66BB6A),
+    Color(0xFF42A5F5),
+    Color(0xFFAB47BC),
+    Color(0xFFEF5350),
+    Color(0xFFFFA726),
   ];
 
   String _getReciterName(int id) {
@@ -40,44 +51,47 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background(context),
+      backgroundColor: AppColors.homeBackground(context),
       appBar: AppBar(
-        title: Text('Pengaturan', style: AppTextStyles.headingSmall(context)),
-        backgroundColor: AppColors.background(context),
+        backgroundColor: AppColors.homeBackground(context),
         elevation: 0,
         scrolledUnderElevation: 0,
+        iconTheme: IconThemeData(color: AppColors.homeInk(context)),
+        title: Text('Pengaturan', style: AppTokens.pageTitle(context)),
       ),
       body: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, settings) {
           final cubit = context.read<SettingsCubit>();
 
           return ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.fromLTRB(
+              AppTokens.pageMargin,
+              4,
+              AppTokens.pageMargin,
+              32,
+            ),
             children: [
-              _SectionLabel(label: 'Umum'),
+              const _SectionLabel('Umum'),
               _SettingsCard(
                 children: [
                   _SelectTile(
                     icon: Icons.palette_outlined,
-                    iconColor: const Color(0xFF7C4DFF),
                     title: 'Mode Tema',
                     value: _themeModeLabel(settings.themeMode),
                     valueIcon: _themeModeIcon(settings.themeMode),
-                    onTap: () => _showThemeModeDialog(context, cubit, settings),
+                    onTap: () => _showThemeModeSheet(context, cubit, settings),
                   ),
-                  _Divider(),
-                  _SwitchTile(
+                  const _TileDivider(),
+                  _SwitchRow(
                     icon: Icons.screen_lock_portrait_outlined,
-                    iconColor: const Color(0xFF00897B),
                     title: 'Layar Menyala',
                     subtitle: 'Layar tidak akan mati saat membaca',
                     value: settings.keepScreenOn,
                     onChanged: cubit.toggleKeepScreenOn,
                   ),
-                  _Divider(),
-                  _SwitchTile(
-                    icon: Icons.fullscreen_rounded,
-                    iconColor: const Color(0xFF1E88E5),
+                  const _TileDivider(),
+                  _SwitchRow(
+                    icon: Icons.crop_free_rounded,
                     title: 'Layar Penuh',
                     subtitle: 'Sembunyikan status bar & navigasi',
                     value: settings.fullScreen,
@@ -85,130 +99,114 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-
-              _SectionLabel(label: 'Audio'),
+              const _SectionLabel('Audio'),
               _SettingsCard(
                 children: [
                   _SelectTile(
                     icon: Icons.mic_none_rounded,
-                    iconColor: const Color(0xFFE53935),
                     title: 'Qori Murattal',
                     value: _getReciterName(settings.selectedReciterId),
-                    onTap: () => _showReciterDialog(context, cubit, settings),
+                    onTap: () => _showReciterSheet(context, cubit, settings),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-
-              _SectionLabel(label: 'Teks Arab'),
+              const _SectionLabel('Teks Arab'),
               _SettingsCard(
                 children: [
                   _SelectTile(
-                    icon: Icons.translate_rounded,
-                    iconColor: const Color(0xFF43A047),
+                    icon: Icons.edit_outlined,
                     title: 'Jenis Penulisan',
                     value: settings.arabicFontType == 'IndoPak'
                         ? 'IndoPak (Asia)'
                         : 'Utsmani (Madinah)',
-                    onTap: () => _showFontTypeDialog(context, cubit, settings),
+                    onTap: () => _showFontTypeSheet(context, cubit, settings),
                   ),
-                  _Divider(),
+                  const _TileDivider(),
                   _SelectTile(
-                    icon: Icons.format_size_rounded,
-                    iconColor: const Color(0xFFFB8C00),
+                    icon: Icons.text_fields_rounded,
                     title: 'Ukuran Font',
                     value: '${settings.arabicFontSize.toInt()} px',
-                    onTap: () => _showFontSizeDialog(
+                    onTap: () => _showFontSizeSheet(
                       context,
-                      'Ukuran Font Arab',
-                      [14, 16, 18, 20, 22, 24, 26, 28, 30, 32],
-                      settings.arabicFontSize.toInt(),
-                      (v) => cubit.setArabicFontSize(v.toDouble()),
+                      title: 'Ukuran Font Arab',
+                      sizes: const [14, 16, 18, 20, 22, 24, 26, 28, 30, 32],
+                      current: settings.arabicFontSize.toInt(),
+                      arabic: true,
+                      onApply: (v) => cubit.setArabicFontSize(v.toDouble()),
                     ),
                   ),
-                  _Divider(),
-                  _SwitchTile(
+                  const _TileDivider(),
+                  _SwitchRow(
                     icon: Icons.tag_rounded,
-                    iconColor: const Color(0xFF8E24AA),
                     title: 'Nomor Ayat Arab',
                     subtitle: 'Tampilkan nomor ayat dengan angka Arab',
                     value: settings.showArabicNumbers,
                     onChanged: cubit.toggleArabicNumbers,
                   ),
-                  _Divider(),
-                  _TajwidTile(
-                    settings: settings,
-                    cubit: cubit,
-                    onTap: () => _showTajwidDialog(context, cubit),
-                  ),
+                  const _TileDivider(),
+                  const _TajwidRow(),
                 ],
               ),
-              const SizedBox(height: 8),
-
-              _SectionLabel(label: 'Latin (Transliterasi)'),
+              const _SectionLabel('Latin (Transliterasi)'),
               _SettingsCard(
                 children: [
-                  _SwitchTile(
+                  _SwitchRow(
                     icon: Icons.abc_rounded,
-                    iconColor: const Color(0xFF00ACC1),
                     title: 'Tampilkan Latin',
-                    subtitle: 'Transliterasi teks Al-Qur\'an',
+                    subtitle: "Transliterasi teks Al-Qur'an",
                     value: settings.showLatin,
                     onChanged: cubit.toggleLatin,
                   ),
-                  _Divider(),
+                  const _TileDivider(),
                   _SelectTile(
-                    icon: Icons.format_size_rounded,
-                    iconColor: const Color(0xFF00ACC1),
+                    icon: Icons.text_fields_rounded,
                     title: 'Ukuran Font Latin',
                     value: '${settings.latinFontSize.toInt()} px',
                     enabled: settings.showLatin,
                     onTap: settings.showLatin
-                        ? () => _showFontSizeDialog(
+                        ? () => _showFontSizeSheet(
                             context,
-                            'Ukuran Font Latin',
-                            [10, 12, 14, 16, 18, 20, 22, 24],
-                            settings.latinFontSize.toInt(),
-                            (v) => cubit.setLatinFontSize(v.toDouble()),
+                            title: 'Ukuran Font Latin',
+                            sizes: const [10, 12, 14, 16, 18, 20, 22, 24],
+                            current: settings.latinFontSize.toInt(),
+                            arabic: false,
+                            latinSample: true,
+                            onApply: (v) => cubit.setLatinFontSize(v.toDouble()),
                           )
                         : null,
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-
-              _SectionLabel(label: 'Terjemahan'),
+              const _SectionLabel('Terjemahan'),
               _SettingsCard(
                 children: [
-                  _SwitchTile(
+                  _SwitchRow(
                     icon: Icons.menu_book_rounded,
-                    iconColor: const Color(0xFFD81B60),
                     title: 'Tampilkan Terjemahan',
                     subtitle: 'Terjemahan Bahasa Indonesia',
                     value: settings.showTranslation,
                     onChanged: cubit.toggleTranslation,
                   ),
-                  _Divider(),
+                  const _TileDivider(),
                   _SelectTile(
-                    icon: Icons.format_size_rounded,
-                    iconColor: const Color(0xFFD81B60),
+                    icon: Icons.text_fields_rounded,
                     title: 'Ukuran Font Terjemahan',
                     value: '${settings.translationFontSize.toInt()} px',
                     enabled: settings.showTranslation,
                     onTap: settings.showTranslation
-                        ? () => _showFontSizeDialog(
+                        ? () => _showFontSizeSheet(
                             context,
-                            'Ukuran Font Terjemahan',
-                            [10, 12, 14, 16, 18, 20, 22, 24],
-                            settings.translationFontSize.toInt(),
-                            (v) => cubit.setTranslationFontSize(v.toDouble()),
+                            title: 'Ukuran Font Terjemahan',
+                            sizes: const [10, 12, 14, 16, 18, 20, 22, 24],
+                            current: settings.translationFontSize.toInt(),
+                            arabic: false,
+                            onApply: (v) =>
+                                cubit.setTranslationFontSize(v.toDouble()),
                           )
                         : null,
                   ),
                 ],
               ),
-              const SizedBox(height: 32),
             ],
           );
         },
@@ -216,7 +214,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showThemeModeDialog(
+  void _showThemeModeSheet(
     BuildContext context,
     SettingsCubit cubit,
     SettingsState settings,
@@ -238,199 +236,68 @@ class SettingsScreen extends StatelessWidget {
         'icon': Icons.brightness_auto_rounded,
       },
     ];
-    _showOptionDialog(
-      context: context,
-      title: 'Mode Tema',
-      children: items.map((item) {
-        final mode = item['mode'] as ThemeMode;
-        final isSelected = settings.themeMode == mode;
-        return _OptionTile(
-          icon: item['icon'] as IconData,
-          label: item['label'] as String,
-          isSelected: isSelected,
-          onTap: () {
-            cubit.setThemeMode(mode);
-            Navigator.pop(context);
-          },
-        );
-      }).toList(),
-    );
-  }
-
-  void _showTajwidDialog(BuildContext context, SettingsCubit cubit) {
-    final tajwidRules = [
-      {
-        'key': 'ghunnah',
-        'name': 'Ghunnah',
-        'color': const Color(0xFFFF7043),
-        'desc': 'Dengung (nun/mim tasydid)',
-      },
-      {
-        'key': 'ikhfa',
-        'name': 'Ikhfa',
-        'color': const Color(0xFF66BB6A),
-        'desc': 'Samar (nun sukun/tanwin)',
-      },
-      {
-        'key': 'idgham',
-        'name': 'Idgham',
-        'color': const Color(0xFF42A5F5),
-        'desc': 'Memasukkan (nun sukun/tanwin)',
-      },
-      {
-        'key': 'iqlab',
-        'name': 'Iqlab',
-        'color': const Color(0xFFAB47BC),
-        'desc': 'Menukar nun ke mim',
-      },
-      {
-        'key': 'qalqalah',
-        'name': 'Qalqalah',
-        'color': const Color(0xFFEF5350),
-        'desc': 'Memantulkan (huruf qalqalah)',
-      },
-      {
-        'key': 'madLazim',
-        'name': 'Mad Lazim',
-        'color': const Color(0xFFFFA726),
-        'desc': 'Mad panjang wajib (6 harakat)',
-      },
-    ];
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => BlocProvider.value(
-        value: cubit,
-        child: BlocBuilder<SettingsCubit, SettingsState>(
-          builder: (ctx, state) {
-            Map<String, bool> valueMap = {
-              'ghunnah': state.tajwidGhunnah,
-              'ikhfa': state.tajwidIkhfa,
-              'idgham': state.tajwidIdgham,
-              'iqlab': state.tajwidIqlab,
-              'qalqalah': state.tajwidQalqalah,
-              'madLazim': state.tajwidMadLazim,
-            };
-            Map<String, ValueChanged<bool>> toggleMap = {
-              'ghunnah': cubit.toggleTajwidGhunnah,
-              'ikhfa': cubit.toggleTajwidIkhfa,
-              'idgham': cubit.toggleTajwidIdgham,
-              'iqlab': cubit.toggleTajwidIqlab,
-              'qalqalah': cubit.toggleTajwidQalqalah,
-              'madLazim': cubit.toggleTajwidMadLazim,
-            };
-
-            return _BottomSheet(
-              title: 'Tajwid Berwarna',
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
-                      color: state.tajwidColored
-                          ? AppColors.primary.withValues(alpha: 0.1)
-                          : AppColors.card(ctx),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: state.tajwidColored
-                            ? AppColors.primary.withValues(alpha: 0.4)
-                            : Colors.transparent,
-                      ),
-                    ),
-                    child: SwitchListTile(
-                      title: Text(
-                        'Aktifkan Tajwid Berwarna',
-                        style: AppTextStyles.bodyMedium(
-                          ctx,
-                        ).copyWith(fontWeight: FontWeight.w600),
-                      ),
-                      subtitle: Text(
-                        'Warnai huruf sesuai hukum tajwid',
-                        style: AppTextStyles.bodySmall(ctx),
-                      ),
-                      value: state.tajwidColored,
-                      onChanged: cubit.toggleTajwidColored,
-                      activeThumbColor: AppColors.primary,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
-                      ),
-                    ),
-                  ),
-
-                  AnimatedOpacity(
-                    opacity: state.tajwidColored ? 1.0 : 0.35,
-                    duration: const Duration(milliseconds: 200),
-                    child: AbsorbPointer(
-                      absorbing: !state.tajwidColored,
-                      child: Column(
-                        children: tajwidRules.map((rule) {
-                          final key = rule['key'] as String;
-                          final color = rule['color'] as Color;
-                          final isOn = valueMap[key] ?? true;
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            decoration: BoxDecoration(
-                              color: AppColors.card(ctx),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: ListTile(
-                              leading: Container(
-                                width: 36,
-                                height: 36,
-                                decoration: BoxDecoration(
-                                  color: color.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Center(
-                                  child: Container(
-                                    width: 12,
-                                    height: 12,
-                                    decoration: BoxDecoration(
-                                      color: color,
-                                      borderRadius: BorderRadius.circular(3),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              title: Text(
-                                rule['name'] as String,
-                                style: AppTextStyles.bodyMedium(
-                                  ctx,
-                                ).copyWith(fontWeight: FontWeight.w500),
-                              ),
-                              subtitle: Text(
-                                rule['desc'] as String,
-                                style: AppTextStyles.bodySmall(ctx),
-                              ),
-                              trailing: Switch(
-                                value: isOn,
-                                onChanged: toggleMap[key]!,
-                                activeThumbColor: color,
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 2,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ),
-                ],
+      builder: (sheetContext) => _SheetShell(
+        title: 'Mode Tema',
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: items.map((item) {
+            final mode = item['mode'] as ThemeMode;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _OptionTile(
+                icon: item['icon'] as IconData,
+                label: item['label'] as String,
+                selected: settings.themeMode == mode,
+                onTap: () {
+                  cubit.setThemeMode(mode);
+                  Navigator.pop(sheetContext);
+                },
               ),
             );
-          },
+          }).toList(),
         ),
       ),
     );
   }
 
-  void _showFontTypeDialog(
+  void _showReciterSheet(
+    BuildContext context,
+    SettingsCubit cubit,
+    SettingsState settings,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => _SheetShell(
+        title: 'Qori Murattal',
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: _reciters.map((r) {
+            final id = r['id'] as int;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _OptionTile(
+                label: r['name'] as String,
+                selected: settings.selectedReciterId == id,
+                onTap: () {
+                  cubit.setReciterId(id);
+                  Navigator.pop(sheetContext);
+                },
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  void _showFontTypeSheet(
     BuildContext context,
     SettingsCubit cubit,
     SettingsState settings,
@@ -441,340 +308,261 @@ class SettingsScreen extends StatelessWidget {
         'label': 'IndoPak',
         'sub': 'Dipakai di Asia Selatan & Tenggara',
         'preview': 'بِسْمِ اللّٰهِ',
+        'font': 'Lateef',
       },
       {
         'key': 'Uthmani',
         'label': 'Utsmani',
         'sub': 'Standar Mushaf Madinah',
         'preview': 'بِسۡمِ ٱللَّهِ',
+        'font': 'ScheherazadeNew',
       },
     ];
 
-    _showOptionDialog(
-      context: context,
-      title: 'Jenis Penulisan Arab',
-      children: items.map((item) {
-        final isSelected = settings.arabicFontType == item['key'];
-        return _OptionTile(
-          label: item['label'] as String,
-          subtitle: item['sub'] as String,
-          isSelected: isSelected,
-          trailing: Text(
-            item['preview'] as String,
-            style: TextStyle(
-              fontFamily: item['key'] == 'IndoPak'
-                  ? 'Lateef'
-                  : 'ScheherazadeNew',
-              fontSize: 20,
-              color: isSelected
-                  ? AppColors.primary
-                  : AppColors.textSecondary(context),
-            ),
-          ),
-          onTap: () {
-            cubit.setArabicFontType(item['key']!);
-            Navigator.pop(context);
-          },
-        );
-      }).toList(),
-    );
-  }
-
-  void _showFontSizeDialog(
-    BuildContext context,
-    String title,
-    List<int> sizes,
-    int currentSize,
-    ValueChanged<int> onSelect,
-  ) {
-    final isArabic = title.toLowerCase().contains('arab');
-    final previewText = isArabic
-        ? 'بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ'
-        : title.toLowerCase().contains('latin')
-            ? 'Bismillāhirraḥmānirraḥīm'
-            : 'Dengan nama Allah Yang Maha Pengasih, Maha Penyayang.';
-
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (ctx) {
-        int selected = currentSize;
-        return StatefulBuilder(
-          builder: (ctx, setModalState) {
-
-          void changeSize(int newSize) {
-            setModalState(() => selected = newSize);
-            // Tidak langsung update cubit — cegah rebuild yang reset selected
-          }
-
-          return _BottomSheet(
-            title: title,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── Preview ──────────────────────────────────────
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 20,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => _SheetShell(
+        title: 'Jenis Penulisan Arab',
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: items.map((item) {
+            final isSelected = settings.arabicFontType == item['key'];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _OptionTile(
+                label: item['label'] as String,
+                subtitle: item['sub'] as String,
+                selected: isSelected,
+                onTap: () {
+                  cubit.setArabicFontType(item['key'] as String);
+                  Navigator.pop(sheetContext);
+                },
+                trailingPreview: Text(
+                  item['preview'] as String,
+                  style: TextStyle(
+                    fontFamily: item['font'] as String,
+                    fontSize: 20,
+                    color: isSelected ? Colors.white : AppColors.homeInk(context),
                   ),
-                  decoration: BoxDecoration(
-                    color: AppColors.card(ctx),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: Text(
-                    previewText,
-                    textAlign: isArabic ? TextAlign.right : TextAlign.center,
-                    style: TextStyle(
-                      fontSize: selected.toDouble(),
-                      fontFamily: isArabic ? 'ScheherazadeNew' : null,
-                      color: AppColors.textPrimary(ctx),
-                      height: isArabic ? 2.0 : 1.5,
-                    ),
-                  ),
+                  textDirection: TextDirection.rtl,
                 ),
-                const SizedBox(height: 24),
-
-                // ── Kontrol ukuran ───────────────────────────────
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Tombol minus
-                    _SizeStepButton(
-                      icon: Icons.remove_rounded,
-                      onTap: () {
-                        final idx = sizes.indexOf(selected);
-                        if (idx > 0) changeSize(sizes[idx - 1]);
-                      },
-                      enabled: sizes.indexOf(selected) > 0,
-                    ),
-                    const SizedBox(width: 16),
-
-                    // Badge ukuran saat ini
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: Text(
-                        '$selected px',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-
-                    // Tombol plus
-                    _SizeStepButton(
-                      icon: Icons.add_rounded,
-                      onTap: () {
-                        final idx = sizes.indexOf(selected);
-                        if (idx < sizes.length - 1) changeSize(sizes[idx + 1]);
-                      },
-                      enabled: sizes.indexOf(selected) < sizes.length - 1,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-
-                // ── Slider ───────────────────────────────────────
-                SliderTheme(
-                  data: SliderTheme.of(ctx).copyWith(
-                    trackHeight: 4,
-                    thumbShape: const RoundSliderThumbShape(
-                      enabledThumbRadius: 10,
-                    ),
-                    overlayShape: const RoundSliderOverlayShape(
-                      overlayRadius: 20,
-                    ),
-                    activeTrackColor: AppColors.primary,
-                    inactiveTrackColor: AppColors.primary.withValues(alpha: 0.2),
-                    thumbColor: AppColors.primary,
-                  ),
-                  child: Slider(
-                    value: sizes.indexOf(selected).toDouble(),
-                    min: 0,
-                    max: (sizes.length - 1).toDouble(),
-                    divisions: sizes.length - 1,
-                    onChanged: (v) => changeSize(sizes[v.round()]),
-                  ),
-                ),
-
-                // ── Label min/maks ────────────────────────────────
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '${sizes.first} px',
-                        style: AppTextStyles.bodySmall(ctx),
-                      ),
-                      Text(
-                        '${sizes.last} px',
-                        style: AppTextStyles.bodySmall(ctx),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // ── Tombol selesai ────────────────────────────────
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: () {
-                      onSelect(selected);
-                      Navigator.pop(ctx);
-                    },
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'Selesai',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );           // closes _BottomSheet(
-        },             // closes builder: (ctx, setModalState) {
-      );               // closes StatefulBuilder(
-    },                 // closes builder: (ctx) {
-  );                   // closes showModalBottomSheet(
-  }
-
-  void _showReciterDialog(
-    BuildContext context,
-    SettingsCubit cubit,
-    SettingsState settings,
-  ) {
-    _showOptionDialog(
-      context: context,
-      title: 'Pilih Qori Murattal',
-      children: _reciters.map((r) {
-        final isSelected = settings.selectedReciterId == r['id'];
-        return _OptionTile(
-          label: r['name'] as String,
-          isSelected: isSelected,
-          onTap: () {
-            cubit.setReciterId(r['id'] as int);
-            Navigator.pop(context);
-          },
-        );
-      }).toList(),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
     );
   }
 
-  void _showOptionDialog({
-    required BuildContext context,
+  void _showFontSizeSheet(
+    BuildContext context, {
     required String title,
-    required List<Widget> children,
+    required List<int> sizes,
+    required int current,
+    required bool arabic,
+    required ValueChanged<int> onApply,
+    bool latinSample = false,
   }) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => _BottomSheet(
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => _FontSizeSheet(
         title: title,
-        child: Column(mainAxisSize: MainAxisSize.min, children: children),
+        sizes: sizes,
+        current: current,
+        arabic: arabic,
+        latinSample: latinSample,
+        onApply: onApply,
       ),
     );
   }
 }
 
-class _SizeStepButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-  final bool enabled;
+class _FontSizeSheet extends StatefulWidget {
+  final String title;
+  final List<int> sizes;
+  final int current;
+  final bool arabic;
+  final bool latinSample;
+  final ValueChanged<int> onApply;
 
-  const _SizeStepButton({
-    required this.icon,
-    required this.onTap,
-    this.enabled = true,
+  const _FontSizeSheet({
+    required this.title,
+    required this.sizes,
+    required this.current,
+    required this.arabic,
+    required this.latinSample,
+    required this.onApply,
   });
 
   @override
+  State<_FontSizeSheet> createState() => _FontSizeSheetState();
+}
+
+class _FontSizeSheetState extends State<_FontSizeSheet> {
+  late int _selected = widget.current;
+
+  void _change(int newSize) {
+    if (widget.sizes.contains(newSize)) {
+      setState(() => _selected = newSize);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: enabled ? onTap : null,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: enabled
-              ? AppColors.primary.withValues(alpha: 0.12)
-              : AppColors.card(context),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: enabled
-                ? AppColors.primary.withValues(alpha: 0.3)
-                : AppColors.dividerColor(context),
+    return _SheetShell(
+      title: widget.title,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _PreviewBox(
+            child: widget.arabic
+                ? FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+                      style: TextStyle(
+                        fontFamily: 'Amiri',
+                        fontSize: _selected.toDouble(),
+                        color: AppColors.homeArabicSecondary(context),
+                      ),
+                      textDirection: TextDirection.rtl,
+                    ),
+                  )
+                : Text(
+                    widget.latinSample
+                        ? 'Bismillāhirraḥmānirraḥīm'
+                        : 'Dengan nama Allah Yang Maha Pengasih, Maha Penyayang.',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: _selected.toDouble(),
+                      color: AppColors.homeInk(context),
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
           ),
-        ),
-        child: Icon(
-          icon,
-          size: 22,
-          color: enabled
-              ? AppColors.primary
-              : AppColors.textSecondary(context),
-        ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              _StepButton(
+                icon: Icons.remove_rounded,
+                onTap: () {
+                  final idx = widget.sizes.indexOf(_selected);
+                  if (idx > 0) _change(widget.sizes[idx - 1]);
+                },
+              ),
+              Expanded(
+                child: Center(
+                  child: Text(
+                    '$_selected px',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.homeInk(context),
+                    ),
+                  ),
+                ),
+              ),
+              _StepButton(
+                icon: Icons.add_rounded,
+                onTap: () {
+                  final idx = widget.sizes.indexOf(_selected);
+                  if (idx < widget.sizes.length - 1) {
+                    _change(widget.sizes[idx + 1]);
+                  }
+                },
+              ),
+            ],
+          ),
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              trackHeight: 4,
+              activeTrackColor: AppColors.forest,
+              inactiveTrackColor: AppColors.homeOptionSurface(context),
+              thumbColor: AppColors.forest,
+              overlayColor: AppColors.forest.withValues(alpha: 0.15),
+              valueIndicatorColor: AppColors.forest,
+            ),
+            child: Slider(
+              value: widget.sizes.indexOf(_selected).toDouble(),
+              min: 0,
+              max: (widget.sizes.length - 1).toDouble(),
+              divisions: widget.sizes.length - 1,
+              label: '$_selected px',
+              onChanged: (v) => _change(widget.sizes[v.round()]),
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('${widget.sizes.first} px', style: AppTokens.tileSubtitle(context)),
+              Text('${widget.sizes.last} px', style: AppTokens.tileSubtitle(context)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () {
+                widget.onApply(_selected);
+                Navigator.pop(context);
+              },
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.forest,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppTokens.buttonRadius),
+                ),
+              ),
+              child: const Text(
+                'Selesai',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
 class _SectionLabel extends StatelessWidget {
+  final String text;
 
-  final String label;
-  const _SectionLabel({required this.label});
+  const _SectionLabel(this.text);
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 8, top: 8),
-      child: Text(
-        label.toUpperCase(),
-        style: AppTextStyles.sectionHeader(context).copyWith(fontSize: 11),
-      ),
+      padding: const EdgeInsets.only(left: 4, top: 20, bottom: 8),
+      child: Text(text.toUpperCase(), style: AppTokens.cardLabel(context)),
     );
   }
 }
 
 class _SettingsCard extends StatelessWidget {
   final List<Widget> children;
+
   const _SettingsCard({required this.children});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.homeSurface(context),
+        borderRadius: BorderRadius.circular(AppTokens.cardRadius),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(children: children),
@@ -782,28 +570,103 @@ class _SettingsCard extends StatelessWidget {
   }
 }
 
-class _Divider extends StatelessWidget {
+class _TileDivider extends StatelessWidget {
+  const _TileDivider();
+
   @override
   Widget build(BuildContext context) {
-    return Divider(
-      height: 1,
-      indent: 56,
-      color: AppColors.dividerColor(context),
+    return Padding(
+      padding: const EdgeInsets.only(left: 74),
+      child: Divider(height: 1, color: AppColors.homeDivider(context)),
     );
   }
 }
 
-class _SwitchTile extends StatelessWidget {
+class _SelectTile extends StatelessWidget {
   final IconData icon;
-  final Color iconColor;
+  final String title;
+  final String? value;
+  final IconData? valueIcon;
+  final bool enabled;
+  final VoidCallback? onTap;
+
+  const _SelectTile({
+    required this.icon,
+    required this.title,
+    required this.value,
+    this.valueIcon,
+    this.enabled = true,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Opacity(
+      opacity: enabled ? 1 : 0.45,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: enabled ? onTap : null,
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 72),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                StarIconContainer(
+                  icon: icon,
+                  containerColor: AppColors.homeStarSecondary(context),
+                  iconColor: AppColors.homeArabicSecondary(context),
+                ),
+                const SizedBox(width: 14),
+                // Expanded ketat: menghabiskan seluruh sisa ruang, jadi
+                // tidak ada ruang mati yang bocor setelah panah dan grup
+                // nilai selalu nempel di tepi kanan di semua baris.
+                Expanded(
+                  child: Text(
+                    title,
+                    style: AppTokens.tileTitle(context),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                if (valueIcon != null) ...[
+                  Icon(
+                    valueIcon,
+                    size: 16,
+                    color: AppColors.homeArabicSecondary(context),
+                  ),
+                  const SizedBox(width: 6),
+                ],
+                Text(
+                  value ?? '',
+                  style: AppTokens.tileValue(context),
+                  maxLines: 1,
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 20,
+                  color: AppColors.homeInkSecondary(context),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SwitchRow extends StatelessWidget {
+  final IconData icon;
   final String title;
   final String subtitle;
   final bool value;
   final ValueChanged<bool> onChanged;
 
-  const _SwitchTile({
+  const _SwitchRow({
     required this.icon,
-    required this.iconColor,
     required this.title,
     required this.subtitle,
     required this.value,
@@ -812,259 +675,173 @@ class _SwitchTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: _IconBox(icon: icon, color: iconColor),
-      title: Text(
-        title,
-        style: AppTextStyles.bodyMedium(
-          context,
-        ).copyWith(fontWeight: FontWeight.w500),
-      ),
-      subtitle: Padding(
-        padding: const EdgeInsets.only(top: 2),
-        child: Text(subtitle, style: AppTextStyles.bodySmall(context)),
-      ),
-      trailing: Switch(
-        value: value,
-        onChanged: onChanged,
-        activeThumbColor: AppColors.primary,
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-    );
-  }
-}
-
-class _SelectTile extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
-  final String title;
-  final String value;
-  final IconData? valueIcon;
-  final VoidCallback? onTap;
-  final bool enabled;
-
-  const _SelectTile({
-    required this.icon,
-    required this.iconColor,
-    required this.title,
-    required this.value,
-    this.valueIcon,
-    this.onTap,
-    this.enabled = true,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: _IconBox(
-        icon: icon,
-        color: enabled ? iconColor : AppColors.textSecondary(context),
-      ),
-      title: Text(
-        title,
-        style: AppTextStyles.bodyMedium(context).copyWith(
-          fontWeight: FontWeight.w500,
-          color: enabled ? null : AppColors.textSecondary(context),
-        ),
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (valueIcon != null) ...[
-            Icon(valueIcon, size: 16, color: AppColors.textSecondary(context)),
-            const SizedBox(width: 4),
-          ],
-          Text(
-            value,
-            style: AppTextStyles.bodySmall(context).copyWith(
-              color: enabled
-                  ? AppColors.primary
-                  : AppColors.textSecondary(context),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(width: 4),
-          Icon(
-            Icons.chevron_right_rounded,
-            size: 18,
-            color: enabled
-                ? AppColors.textSecondary(context)
-                : AppColors.textSecondary(context).withValues(alpha: 0.4),
-          ),
-        ],
-      ),
-      onTap: enabled ? onTap : null,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-    );
-  }
-}
-
-class _TajwidTile extends StatelessWidget {
-  final SettingsState settings;
-  final SettingsCubit cubit;
-  final VoidCallback onTap;
-
-  const _TajwidTile({
-    required this.settings,
-    required this.cubit,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = [
-      const Color(0xFFFF7043),
-      const Color(0xFF66BB6A),
-      const Color(0xFF42A5F5),
-      const Color(0xFFAB47BC),
-      const Color(0xFFEF5350),
-      const Color(0xFFFFA726),
-    ];
-
-    return Opacity(
-      opacity: 0.5,
-      child: ListTile(
-        leading: _IconBox(
-          icon: Icons.color_lens_outlined,
-          color: const Color(0xFF7986CB),
-        ),
-        title: Row(
+    return MergeSemantics(
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 72),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
           children: [
-            Text(
-              'Tajwid Berwarna',
-              style: AppTextStyles.bodyMedium(
-                context,
-              ).copyWith(fontWeight: FontWeight.w500),
+            StarIconContainer(
+              icon: icon,
+              containerColor: AppColors.homeStarSecondary(context),
+              iconColor: AppColors.homeArabicSecondary(context),
             ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.3),
-                  width: 1,
-                ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: AppTokens.tileTitle(context),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: AppTokens.tileSubtitle(context),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
-              child: Text(
-                'Segera Hadir',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
-                ),
+            ),
+            const SizedBox(width: 10),
+            Switch(
+              value: value,
+              onChanged: onChanged,
+              activeThumbColor: AppColors.forest,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TajwidRow extends StatelessWidget {
+  const _TajwidRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return Opacity(
+      opacity: 0.55,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 72),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            StarIconContainer(
+              icon: Icons.auto_awesome_outlined,
+              containerColor: AppColors.homeStarSecondary(context),
+              iconColor: AppColors.homeArabicSecondary(context),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          'Tajwid Berwarna',
+                          style: AppTokens.tileTitle(context),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.gold.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                        child: Text(
+                          'Segera Hadir',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.gold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: SettingsScreen.tajwidDotColors
+                        .map(
+                          (c) => Container(
+                            width: 10,
+                            height: 10,
+                            margin: const EdgeInsets.only(right: 4),
+                            decoration: BoxDecoration(
+                              color: c,
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ],
               ),
             ),
           ],
         ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: Row(
+      ),
+    );
+  }
+}
+
+class _SheetShell extends StatelessWidget {
+  final String title;
+  final Widget child;
+
+  const _SheetShell({required this.title, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.homeSheetSurface(context),
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppTokens.sheetRadius),
+          ),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ...colors.map(
-                (c) => Container(
-                  width: 10,
-                  height: 10,
-                  margin: const EdgeInsets.only(right: 4),
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: c.withValues(alpha: 0.5),
+                    color: AppColors.homeDivider(context),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
+              Text(title, style: AppTokens.sheetTitle(context)),
+              const SizedBox(height: 16),
+              Flexible(child: SingleChildScrollView(child: child)),
             ],
           ),
-        ),
-        trailing: Icon(
-          Icons.chevron_right_rounded,
-          size: 18,
-          color: AppColors.textSecondary(context),
-        ),
-        onTap: null,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      ),
-    );
-  }
-}
-
-class _IconBox extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-
-  const _IconBox({required this.icon, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Icon(icon, size: 20, color: color),
-    );
-  }
-}
-
-class _BottomSheet extends StatelessWidget {
-  final String title;
-  final Widget child;
-
-  const _BottomSheet({required this.title, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    final bottomPadding =
-        MediaQuery.of(context).viewInsets.bottom +
-        MediaQuery.of(context).padding.bottom +
-        16;
-
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.85,
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface(context),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: const EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 20,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Drag handle — selalu di atas
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  color: AppColors.dividerColor(context),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            // Judul — selalu di atas
-            Text(title, style: AppTextStyles.headingSmall(context)),
-            const SizedBox(height: 16),
-            // Konten — scrollable jika overflow
-            Flexible(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: bottomPadding),
-                  child: child,
-                ),
-              ),
-            ),
-          ],
         ),
       ),
     );
@@ -1075,70 +852,129 @@ class _OptionTile extends StatelessWidget {
   final IconData? icon;
   final String label;
   final String? subtitle;
-  final bool isSelected;
+  final bool selected;
   final VoidCallback onTap;
-  final Widget? trailing;
+  final Widget? trailingPreview;
 
   const _OptionTile({
-    this.icon,
     required this.label,
-    this.subtitle,
-    required this.isSelected,
+    required this.selected,
     required this.onTap,
-    this.trailing,
+    this.icon,
+    this.subtitle,
+    this.trailingPreview,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary.withValues(alpha: 0.1)
-              : AppColors.card(context),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected
-                ? AppColors.primary.withValues(alpha: 0.5)
-                : Colors.transparent,
+    return Material(
+      color: selected ? AppColors.forest : AppColors.homeOptionSurface(context),
+      borderRadius: BorderRadius.circular(AppTokens.buttonRadius),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppTokens.buttonRadius),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              if (icon != null) ...[
+                Icon(
+                  icon,
+                  size: 20,
+                  color: selected
+                      ? Colors.white
+                      : AppColors.homeInkSecondary(context),
+                ),
+                const SizedBox(width: 12),
+              ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: selected
+                            ? Colors.white
+                            : AppColors.homeInk(context),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle!,
+                        style: AppTokens.tileSubtitle(context).copyWith(
+                          color: selected
+                              ? Colors.white70
+                              : AppColors.homeInkSecondary(context),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              if (trailingPreview != null) ...[
+                trailingPreview!,
+                const SizedBox(width: 10),
+              ],
+              if (selected)
+                const Icon(Icons.check_rounded, size: 20, color: AppColors.gold),
+            ],
           ),
         ),
-        child: Row(
-          children: [
-            if (icon != null) ...[
-              Icon(icon, size: 20, color: AppColors.textSecondary(context)),
-              const SizedBox(width: 12),
-            ],
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: AppTextStyles.bodyMedium(context).copyWith(
-                      fontWeight: isSelected
-                          ? FontWeight.w600
-                          : FontWeight.normal,
-                      color: isSelected
-                          ? AppColors.primary
-                          : AppColors.textPrimary(context),
-                    ),
-                  ),
-                  if (subtitle != null)
-                    Text(subtitle!, style: AppTextStyles.bodySmall(context)),
-                ],
-              ),
-            ),
-            if (trailing != null) ...[
-              const SizedBox(width: 8),
-              trailing!,
-            ] else if (isSelected)
-              Icon(Icons.check_rounded, color: AppColors.primary, size: 20),
-          ],
+      ),
+    );
+  }
+}
+
+class _PreviewBox extends StatelessWidget {
+  final Widget child;
+
+  const _PreviewBox({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: 130,
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.homeOptionSurface(context),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _StepButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _StepButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.homeOptionSurface(context),
+      borderRadius: BorderRadius.circular(AppTokens.buttonRadius),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppTokens.buttonRadius),
+        child: SizedBox(
+          width: 48,
+          height: 48,
+          child: Icon(icon, size: 22, color: AppColors.homeInk(context)),
         ),
       ),
     );

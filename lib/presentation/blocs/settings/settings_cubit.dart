@@ -51,7 +51,7 @@ class SettingsCubit extends Cubit<SettingsState> {
     'light' => ThemeMode.light,
     'dark' => ThemeMode.dark,
     'system' => ThemeMode.system,
-    _ => ThemeMode.dark,
+    _ => ThemeMode.light,
   };
 
   String _themeModeToString(ThemeMode m) => switch (m) {

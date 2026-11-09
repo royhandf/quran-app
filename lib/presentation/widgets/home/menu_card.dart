@@ -2,7 +2,7 @@
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_tokens.dart';
-import 'star_icon_container.dart';
+import '../star_icon_container.dart';
 
 class MenuItem {
   final String label;
@@ -116,9 +116,7 @@ class _MenuCardState extends State<MenuCard>
               const SizedBox(height: 36),
               Text(
                 widget.item.label,
-                style: AppTokens.menuLabel(
-                  context,
-                ).copyWith(color: labelColor),
+                style: AppTokens.menuLabel(context).copyWith(color: labelColor),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -130,8 +128,6 @@ class _MenuCardState extends State<MenuCard>
   }
 }
 
-/// Grid 2x3. Jika salah satu nama Arab tidak muat di lebar 110px pada 18px,
-/// SEMUA kartu memakai 16px, lalu 14px.
 class MenuGrid extends StatelessWidget {
   final List<MenuItem> items;
 

@@ -22,7 +22,7 @@ class SettingsState extends Equatable {
   final int selectedReciterId;
 
   const SettingsState({
-    this.themeMode = ThemeMode.dark,
+    this.themeMode = ThemeMode.light,
     this.keepScreenOn = false,
     this.fullScreen = false,
     this.arabicFontType = 'IndoPak',
