@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_tokens.dart';
 import '../../blocs/prayer/prayer_state.dart';
 
@@ -14,8 +15,6 @@ const _prayerArabic = {
   'Isya': 'العشاء',
 };
 
-/// Kartu jadwal sholat di home. Semua data diambil dari [PrayerLoaded];
-/// countdown ikut dihitung ulang setiap rebuild (home punya Timer 1 menit).
 class PrayerCard extends StatelessWidget {
   final PrayerLoaded data;
 
@@ -24,7 +23,8 @@ class PrayerCard extends StatelessWidget {
   String get _city {
     final name = data.locationName;
     if (name.isEmpty) return 'Lokasi';
-    return name.split(' - ').first;
+    final city = name.split(' - ').first;
+    return city.replaceFirst(RegExp(r'^(Kota|Kabupaten)\s+'), '');
   }
 
   String get _hijri {
@@ -44,24 +44,42 @@ class PrayerCard extends StatelessWidget {
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(AppTokens.cardRadius),
-      child: Container(
-        color: AppTokens.forest,
-        padding: const EdgeInsets.all(AppTokens.pageMargin),
-        child: Stack(
-          children: [
-            Positioned(
-              top: 0,
-              left: 0,
-              child: IgnorePointer(
-                child: SvgPicture.asset(
-                  'assets/images/ornamen-kartu-sholat-v2.svg',
-                  width: 350,
-                  height: 220,
-                  fit: BoxFit.none,
-                ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          const Positioned.fill(
+            child: ColoredBox(color: AppColors.forest),
+          ),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final scale = (constraints.maxHeight / 192).clamp(1.0, 1.6);
+                  final width = 350 * scale;
+                  final height = 220 * scale;
+                  return OverflowBox(
+                    maxWidth: width,
+                    maxHeight: height,
+                    alignment: Alignment.bottomRight,
+                    child: Transform.translate(
+                      // Setengah pitch bintang (pitch horizontal 64) supaya
+                      // tepi card memotong badan bintang, bukan ujungnya.
+                      offset: Offset(32 * scale, 0),
+                      child: SvgPicture.asset(
+                        'assets/images/ornamen-kartu-sholat-v2.svg',
+                        width: width,
+                        height: height,
+                        fit: BoxFit.none,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
-            Column(
+          ),
+          Padding(
+            padding: const EdgeInsets.all(AppTokens.pageMargin),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -73,19 +91,19 @@ class PrayerCard extends StatelessWidget {
                       color: Colors.white,
                     ),
                     const SizedBox(width: 4),
-                    Text(_city, style: AppTokens.prayerCity),
-                    const Spacer(),
-                    Flexible(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(_hijri, style: AppTokens.hijriDate),
+                    Expanded(
+                      child: Text(
+                        _city,
+                        style: AppTokens.prayerCity,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    const SizedBox(width: 8),
+                    Text(_hijri, style: AppTokens.hijriDate),
                   ],
                 ),
                 const SizedBox(height: 18),
-                Text('SHOLAT BERIKUTNYA', style: AppTokens.prayerLabel),
-                const SizedBox(height: 4),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.baseline,
                   textBaseline: TextBaseline.alphabetic,
@@ -132,8 +150,8 @@ class PrayerCard extends StatelessWidget {
                 ],
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

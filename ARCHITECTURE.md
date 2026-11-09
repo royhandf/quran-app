@@ -106,8 +106,10 @@ Box yang sudah dipakai — jangan tambah box baru tanpa memperbarui daftar ini:
 - Konstanta global di `core/constants/`, helper murni di `core/utils/`.
 - Tidak menambah komentar untuk kode yang sudah jelas. Komentar hanya untuk keputusan
   non-obvious (alasan cache, workaround platform, batasan API).
-- Warna, ukuran font, dan teks gaya diambil dari `AppColors` / `AppTextStyles`, bukan
-  hardcode baru di layar.
+- Warna, radius, spacing, dan gaya teks diambil dari token terpusat: **warna di
+  `AppColors`, dimensi & gaya teks di `AppTokens`**. `AppTextStyles` hanyalah sisa
+  untuk layar yang belum di-redesign dan dipensiunkan bertahap. Aturan lengkapnya di
+  [DESIGN.md](./DESIGN.md), termasuk skema font.
 
 ## 9. Testing
 

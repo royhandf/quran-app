@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../core/constants/app_colors.dart';
 import '../core/di/injection.dart';
 import '../presentation/blocs/quran/quran_cubit.dart';
@@ -49,7 +48,7 @@ class QuranApp extends StatelessWidget {
                 ),
               ),
               dividerColor: AppColors.lightDivider,
-              textTheme: GoogleFonts.poppinsTextTheme(),
+              textTheme: ThemeData.light().textTheme.apply(fontFamily: 'Poppins'),
             ),
             darkTheme: ThemeData(
               useMaterial3: true,
@@ -72,9 +71,7 @@ class QuranApp extends StatelessWidget {
                 ),
               ),
               dividerColor: AppColors.darkDivider,
-              textTheme: GoogleFonts.poppinsTextTheme(
-                ThemeData.dark().textTheme,
-              ),
+              textTheme: ThemeData.dark().textTheme.apply(fontFamily: 'Poppins'),
             ),
             home: const HomeScreen(),
           );

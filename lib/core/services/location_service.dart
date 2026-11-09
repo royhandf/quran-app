@@ -2,7 +2,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 
 class LocationService {
-  // cek & minta izin, lalu dapatkan lokasi
   Future<Position> getCurrentPosition() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
@@ -21,11 +20,13 @@ class LocationService {
     }
 
     return await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        timeLimit: Duration(seconds: 15),
+      ),
     );
   }
 
-  // reverse geocoding: dari koordinat ke nama tempat
   Future<String> getCityName(double lat, double lng) async {
     try {
       final placemarks = await placemarkFromCoordinates(lat, lng);

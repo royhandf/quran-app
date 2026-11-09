@@ -1,10 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
+import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_tokens.dart';
 import '../../../data/models/bookmark.dart';
 
-/// Banner penanda terakhir (bookmark terbaru). Muncul hanya bila [bookmark]
-/// tidak null — pemanggil bertanggung jawab menyembunyikan widget ini.
 class BookmarkBanner extends StatelessWidget {
   final Bookmark bookmark;
   final VoidCallback onTap;
@@ -17,32 +16,30 @@ class BookmarkBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accent = AppColors.homeBannerAccent(context);
+
     return Material(
-      color: AppTokens.sageLight,
+      color: AppColors.homeSurface(context),
       borderRadius: BorderRadius.circular(AppTokens.cardRadius),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppTokens.cardRadius),
         child: Container(
           constraints: const BoxConstraints(minHeight: 64),
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
               Container(
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark
+                      ? AppColors.darkHomeStarContainer
+                      : Colors.white,
                   borderRadius: BorderRadius.circular(AppTokens.buttonRadius),
                 ),
-                child: const Icon(
-                  Icons.bookmark_rounded,
-                  size: 20,
-                  color: AppTokens.forest,
-                ),
+                child: Icon(Icons.bookmark_rounded, size: 20, color: accent),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -52,13 +49,13 @@ class BookmarkBanner extends StatelessWidget {
                   children: [
                     Text(
                       'PENANDA TERAKHIR',
-                      style: AppTokens.cardLabel,
+                      style: AppTokens.cardLabel(context),
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 3),
                     Text(
                       '${bookmark.surahName} · Ayat ${bookmark.ayahNumber}',
-                      style: AppTokens.bannerTitle,
+                      style: AppTokens.bannerTitle(context),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -66,11 +63,7 @@ class BookmarkBanner extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              const Icon(
-                Icons.arrow_forward_rounded,
-                size: 20,
-                color: AppTokens.forest,
-              ),
+              Icon(Icons.arrow_forward_rounded, size: 20, color: accent),
             ],
           ),
         ),

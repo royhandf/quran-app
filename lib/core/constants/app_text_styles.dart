@@ -1,35 +1,46 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 class AppTextStyles {
   AppTextStyles._();
 
-  static TextStyle headingLarge(BuildContext context) => GoogleFonts.poppins(
+  static const String _latin = 'Poppins';
+
+  static TextStyle headingLarge(BuildContext context) => TextStyle(
+    fontFamily: _latin,
     fontSize: 24,
-    fontWeight: FontWeight.bold,
+    fontWeight: FontWeight.w700,
     color: AppColors.textPrimary(context),
   );
 
-  static TextStyle headingMedium(BuildContext context) => GoogleFonts.poppins(
+  static TextStyle headingMedium(BuildContext context) => TextStyle(
+    fontFamily: _latin,
     fontSize: 20,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary(context),
   );
 
-  static TextStyle headingSmall(BuildContext context) => GoogleFonts.poppins(
+  static TextStyle headingSmall(BuildContext context) => TextStyle(
+    fontFamily: _latin,
     fontSize: 16,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary(context),
   );
 
-  static TextStyle bodyLarge(BuildContext context) =>
-      GoogleFonts.poppins(fontSize: 16, color: AppColors.textPrimary(context));
+  static TextStyle bodyLarge(BuildContext context) => TextStyle(
+    fontFamily: _latin,
+    fontSize: 16,
+    color: AppColors.textPrimary(context),
+  );
 
-  static TextStyle bodyMedium(BuildContext context) =>
-      GoogleFonts.poppins(fontSize: 14, color: AppColors.textPrimary(context));
+  static TextStyle bodyMedium(BuildContext context) => TextStyle(
+    fontFamily: _latin,
+    fontSize: 14,
+    color: AppColors.textPrimary(context),
+  );
 
-  static TextStyle bodySmall(BuildContext context) => GoogleFonts.poppins(
+  static TextStyle bodySmall(BuildContext context) => TextStyle(
+    fontFamily: _latin,
     fontSize: 12,
     color: AppColors.textSecondary(context),
   );
@@ -56,7 +67,8 @@ class AppTextStyles {
     color: AppColors.textPrimary(context),
   );
 
-  static TextStyle sectionHeader(BuildContext context) => GoogleFonts.poppins(
+  static TextStyle sectionHeader(BuildContext context) => TextStyle(
+    fontFamily: _latin,
     fontSize: 14,
     fontWeight: FontWeight.w600,
     color: AppColors.primary,

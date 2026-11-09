@@ -7,7 +7,7 @@ A feature-rich Al-Quran & Islamic companion app built with Flutter. Designed wit
 ## ✨ Features
 
 | Feature | Description |
-|---------|-------------|
+| --------- | ------------- |
 | 📖 **Al-Quran** | Browse all 114 surahs, read by ayah with Arabic text, transliteration, and translation |
 | 🔊 **Audio Recitation** | Stream ayah audio with playback controls |
 | 🕌 **Prayer Times** | Auto-detect location and display accurate daily prayer schedules |
@@ -38,6 +38,7 @@ A feature-rich Al-Quran & Islamic companion app built with Flutter. Designed wit
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Flutter SDK `>=3.38.4` (Dart `^3.10.4`)
 - Android device or emulator (iOS not configured)
 

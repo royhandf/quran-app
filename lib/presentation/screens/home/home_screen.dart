@@ -1,6 +1,7 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_tokens.dart';
 import '../../../core/services/update_service.dart';
 import '../../blocs/bookmark/bookmark_cubit.dart';
@@ -85,14 +86,14 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTokens.cream,
+      backgroundColor: AppColors.homeBackground(context),
       body: SafeArea(
         child: MediaQuery.withClampedTextScaling(
           maxScaleFactor: 1.4,
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(
               AppTokens.pageMargin,
-              8,
+              20,
               AppTokens.pageMargin,
               32,
             ),
@@ -117,14 +118,14 @@ class _HomeScreenState extends State<HomeScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const Text("Assalamu'alaikum", style: AppTokens.greeting),
+        Text("Assalamu'alaikum", style: AppTokens.greeting(context)),
         const Spacer(),
         Flexible(
           child: FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
               'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
-              style: AppTokens.bismillah,
+              style: AppTokens.bismillah(context),
               textDirection: TextDirection.rtl,
             ),
           ),
@@ -146,7 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(AppTokens.pageMargin),
               decoration: BoxDecoration(
-                color: AppTokens.forest,
+                color: AppColors.forest,
                 borderRadius: BorderRadius.circular(AppTokens.cardRadius),
               ),
               child: Row(
@@ -167,7 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
           width: double.infinity,
           height: 180,
           decoration: BoxDecoration(
-            color: AppTokens.forest,
+            color: AppColors.forest,
             borderRadius: BorderRadius.circular(AppTokens.cardRadius),
           ),
           child: const Center(
@@ -219,7 +220,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       MenuItem(
         label: 'Jadwal Sholat',
-        arabic: 'مواقيت الصلاة',
+        arabic: 'مواقيت',
         icon: Icons.access_time_rounded,
         onTap: () => _navigate(const PrayerTimesScreen()),
       ),

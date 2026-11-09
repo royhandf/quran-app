@@ -1,9 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:in_app_update/in_app_update.dart';
+import '../constants/app_colors.dart';
 
 class UpdateService {
-  /// Cek update dari Play Store. Return true jika ada update tersedia.
-  /// Akan silently fail jika dijalankan di luar Play Store (debug/APK sideload).
   static Future<bool> isUpdateAvailable() async {
     try {
       final info = await InAppUpdate.checkForUpdate();
@@ -13,17 +12,12 @@ class UpdateService {
     }
   }
 
-  /// Mulai proses update via Play Store.
-  /// Immediate update menangani download sekaligus instalasi, sehingga tidak
-  /// perlu memanggil `completeFlexibleUpdate` secara manual.
   static Future<void> startUpdate() async {
     try {
       await InAppUpdate.performImmediateUpdate();
     } catch (_) {}
   }
 
-  /// Cek update dan tampilkan dialog jika ada update.
-  /// Dipanggil dari home screen setelah app pertama dibuka.
   static Future<void> checkAndShowDialog(BuildContext context) async {
     final hasUpdate = await isUpdateAvailable();
     if (!hasUpdate) return;
@@ -54,7 +48,7 @@ class _UpdateDialog extends StatelessWidget {
             colors: [Color(0xFF0F2218), Color(0xFF1A3A2A)],
           ),
           border: Border.all(
-            color: const Color(0xFFD4AF37).withValues(alpha: 0.3),
+            color: AppColors.gold.withValues(alpha: 0.3),
             width: 1,
           ),
           boxShadow: [

@@ -26,11 +26,61 @@ class AppColors {
   static const Color darkAppBar = Color(0xFF1E1E1E);
 
   // Common
-  static const Color gold = Color(0xFFD4AF37);
   static const Color error = Color(0xFFCF6679);
   static const Color white = Color(0xFFFFFFFF);
   static const Color black = Color(0xFF000000);
   static const Color transparent = Colors.transparent;
+
+  // Palet baru (tujuan akhir) - dipakai layar hasil redesign, mulai dari home
+  static const Color forest = Color(0xFF1F4D3A);
+  static const Color sage = Color(0xFF6B9A74);
+  static const Color sageLight = Color(0xFFE6EEE4);
+  static const Color sageContainer = Color(0xFFD5E3D3);
+  static const Color cream = Color(0xFFF7F6F1);
+  static const Color gold = Color(0xFFD9A441);
+  static const Color ink = Color(0xFF17251E);
+  static const Color inkSecondary = Color(0xFF5E6E64);
+
+  // Palet baru (dark) - varian gelap untuk layar hasil redesign
+  static const Color darkHomeBackground = Color(0xFF0D0F0C);
+  static const Color darkHomeSurface = Color(0xFF171B17);
+  static const Color darkHomePrimaryCard = Color(0xFF2E5B45);
+  static const Color darkHomeStarContainer = Color(0xFF252F26);
+  static const Color darkHomeInk = Color(0xFFE8EDE8);
+  static const Color darkHomeInkSecondary = Color(0xFF9BA79E);
+
+  // Helper palet baru (mengikuti brightness tema)
+  static bool _homeIsDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
+  static Color homeBackground(BuildContext context) =>
+      _homeIsDark(context) ? darkHomeBackground : cream;
+
+  /// Permukaan sekunder: banner penanda + kartu menu sekunder
+  static Color homeSurface(BuildContext context) =>
+      _homeIsDark(context) ? darkHomeSurface : sageLight;
+
+  /// Latar kartu menu primary
+  static Color homePrimarySurface(BuildContext context) =>
+      _homeIsDark(context) ? darkHomePrimaryCard : forest;
+
+  /// Wadah ikon bintang pada kartu sekunder
+  static Color homeStarSecondary(BuildContext context) =>
+      _homeIsDark(context) ? darkHomeStarContainer : sageContainer;
+
+  static Color homeInk(BuildContext context) =>
+      _homeIsDark(context) ? darkHomeInk : ink;
+
+  static Color homeInkSecondary(BuildContext context) =>
+      _homeIsDark(context) ? darkHomeInkSecondary : inkSecondary;
+
+  /// Warna teks Arab sekunder: forest di light, sageLight di dark
+  static Color homeArabicSecondary(BuildContext context) =>
+      _homeIsDark(context) ? sageLight : forest;
+
+  /// Aksen emas banner di dark mode; forest di light mode
+  static Color homeBannerAccent(BuildContext context) =>
+      _homeIsDark(context) ? gold : forest;
 
   // Context-aware helpers
   static Color background(BuildContext context) =>

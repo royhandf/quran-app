@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
+import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_tokens.dart';
 import 'star_icon_container.dart';
 
@@ -52,16 +53,22 @@ class _MenuCardState extends State<MenuCard>
   @override
   Widget build(BuildContext context) {
     final primary = widget.isPrimary;
-    final background = primary ? AppTokens.forest : AppTokens.sageLight;
-    final labelColor = primary ? Colors.white : AppTokens.ink;
-    final arabicColor = primary ? Colors.white : AppTokens.forest;
+    final background = primary
+        ? AppColors.homePrimarySurface(context)
+        : AppColors.homeSurface(context);
+    final labelColor = primary ? Colors.white : AppColors.homeInk(context);
+    final arabicColor = primary
+        ? Colors.white
+        : AppColors.homeArabicSecondary(context);
     final containerColor = primary
         ? Colors.white.withValues(alpha: 0.14)
-        : AppTokens.sageContainer;
-    final iconColor = primary ? Colors.white : AppTokens.forest;
+        : AppColors.homeStarSecondary(context);
+    final iconColor = primary ? Colors.white : AppColors.homeInk(context);
 
-    final arabicStyle =
-        AppTokens.menuArabic(widget.arabicFontSize).copyWith(color: arabicColor);
+    final arabicStyle = AppTokens.menuArabic(
+      context,
+      widget.arabicFontSize,
+    ).copyWith(color: arabicColor);
 
     return GestureDetector(
       onTapDown: (_) => _press.reverse(),
@@ -77,23 +84,22 @@ class _MenuCardState extends State<MenuCard>
             color: background,
             borderRadius: BorderRadius.circular(AppTokens.cardRadius),
           ),
-          child: AspectRatio(
-            aspectRatio: 1.0,
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      StarIconContainer(
-                        icon: widget.item.icon,
-                        containerColor: containerColor,
-                        iconColor: iconColor,
-                      ),
-                      const Spacer(),
-                      ConstrainedBox(
+                  StarIconContainer(
+                    icon: widget.item.icon,
+                    containerColor: containerColor,
+                    iconColor: iconColor,
+                  ),
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.topRight,
+                      child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 110),
                         child: Text(
                           widget.item.arabic,
@@ -103,18 +109,20 @@ class _MenuCardState extends State<MenuCard>
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                    ],
-                  ),
-                  const Spacer(),
-                  Text(
-                    widget.item.label,
-                    style: AppTokens.menuLabel.copyWith(color: labelColor),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
               ),
-            ),
+              const SizedBox(height: 36),
+              Text(
+                widget.item.label,
+                style: AppTokens.menuLabel(
+                  context,
+                ).copyWith(color: labelColor),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
         ),
       ),
@@ -123,7 +131,7 @@ class _MenuCardState extends State<MenuCard>
 }
 
 /// Grid 2x3. Jika salah satu nama Arab tidak muat di lebar 110px pada 18px,
-/// SEMUA kartu memakai 16px.
+/// SEMUA kartu memakai 16px, lalu 14px.
 class MenuGrid extends StatelessWidget {
   final List<MenuItem> items;
 
@@ -131,23 +139,26 @@ class MenuGrid extends StatelessWidget {
 
   static const double _maxArabicWidth = 110;
 
-  double _resolveArabicFontSize() {
-    for (final size in const [18.0, 16.0]) {
+  double _resolveArabicFontSize(BuildContext context) {
+    for (final size in const [18.0, 16.0, 14.0]) {
       final fitsAll = items.every((item) {
         final painter = TextPainter(
-          text: TextSpan(text: item.arabic, style: AppTokens.menuArabic(size)),
+          text: TextSpan(
+            text: item.arabic,
+            style: AppTokens.menuArabic(context, size),
+          ),
           textDirection: TextDirection.rtl,
         )..layout(maxWidth: double.infinity);
         return painter.width <= _maxArabicWidth;
       });
       if (fitsAll) return size;
     }
-    return 16;
+    return 14;
   }
 
   @override
   Widget build(BuildContext context) {
-    final arabicFontSize = _resolveArabicFontSize();
+    final arabicFontSize = _resolveArabicFontSize(context);
     return Column(
       children: [
         for (int i = 0; i < items.length; i += 2) ...[

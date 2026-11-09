@@ -6,23 +6,31 @@ pekerjaan tampilan. Kalau kode UI melanggar aturan di sini, perbaiki ke arah atu
 ## 1. Token terpusat — dilarang hardcode
 
 - Semua warna, radius, spacing, dan gaya teks yang dipakai lebih dari satu tempat
-  **wajib** lewat `lib/core/constants/app_tokens.dart` (home) atau `AppColors` /
-  `AppTextStyles` (layar lama).
+  **wajib** lewat token terpusat: **warna di `AppColors`**, **dimensi & gaya teks
+  layar ter-redesign di `AppTokens`**. `AppTextStyles` hanyalah sisa layar lama.
 - Nilai baru (warna, ukuran, font) hanya boleh ditambah sebagai token dengan nama
   bermakna — bukan `Color(0xFF...)` atau `fontSize: 13` yang disebbar di widget.
 - Satu layar = satu palet yang didefinisikan tokennya dulu, sebelum widget ditulis.
 - Ketika mendesain ulang satu layar, jangan mengubah token layar lain.
+- **`AppColors` adalah satu-satunya rumah warna.** Konstanta warna lama di dalamnya
+  dipensiunkan bertahap: begitu tak terpakai, langsung dihapus. Dilarang ada dua
+  konstanta bernama sama dengan nilai berbeda — `gold` kini hanya satu
+  (`AppColors.gold`, nilai palet baru).
+- Setiap layar yang di-redesign migrasi penuh: warna → `AppColors`, dimensi & gaya
+  teks → `AppTokens` (gaya lintas layar dinaikkan jadi shared). Saat konstanta lama
+  di `AppColors` dan `AppTextStyles` habis, sisanya dihapus.
 
 ## 2. Font
 
 - `fontFamily` hanya boleh menunjuk family yang **terdaftar di `pubspec.yaml`** dan
   filenya benar-benar ada di `assets/fonts/`. Referensi font yang tidak ter-bundle
   adalah bug (contoh lama: `Amiri` sebelum di-bundle).
-- Family dan peruntukannya:
-  - `Amiri` — teks Arab di home (judul, nama Arab).
-  - `Manrope` — teks Latin di home.
-  - `ScheherazadeNew`, `Lateef` — teks Arab di layar baca (jangan dipakai di home).
-  - `Poppins` — tema global layar lama (via GoogleFonts).
+- Family dan peruntukannya (semua ter-bundle lokal di `assets/fonts/` — **tidak ada
+  font yang di-fetch dari jaringan**; dependency `google_fonts` sudah dihapus):
+  - `Poppins` — semua teks Latin, semua layar (tema global + home).
+  - `Amiri` — teks Arab UI di home (bismillah, nama Arab).
+  - `ScheherazadeNew` — ayat Quran di layar baca (default).
+  - `Lateef` — varian gaya via setting penulisan di layar baca.
 - Angka jam memakai `FontFeature.tabularFigures()`.
 
 ## 3. Komponen
@@ -46,7 +54,7 @@ pekerjaan tampilan. Kalau kode UI melanggar aturan di sini, perbaiki ke arah atu
 - Selalu `textDirection: TextDirection.rtl`.
 - Nama/label Arab dengan lebar terbatas: `ConstrainedBox` + `maxLines: 1` +
   `overflow: ellipsis`, dan jika perlu seragam, terapkan pengecilan ke **semua**
-  elemen sekelasnya (pola `MenuGrid`: 18px → 16px bila ada yang tidak muat).
+  elemen sekelasnya (pola `MenuGrid`: 18px → 16px → 14px bila ada yang tidak muat).
 
 ## 6. Layout dan aksesibilitas
 

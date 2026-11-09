@@ -29,6 +29,24 @@ class PrayerTime extends Equatable {
     String cleanTime(String time) =>
         time.replaceAll(RegExp(r'\s*\([^)]*\)'), '');
 
+    const hijriMonthsId = {
+      1: 'Muharram',
+      2: 'Safar',
+      3: 'Rabiul Awal',
+      4: 'Rabiul Akhir',
+      5: 'Jumadil Awal',
+      6: 'Jumadil Akhir',
+      7: 'Rajab',
+      8: "Sya'ban",
+      9: 'Ramadan',
+      10: 'Syawal',
+      11: "Zulka'dah",
+      12: 'Zulhijjah',
+    };
+    final monthNumber = date['hijri']?['month']?['number'] as int?;
+    final monthName =
+        hijriMonthsId[monthNumber] ?? date['hijri']?['month']?['en'] ?? '';
+
     return PrayerTime(
       imsak: cleanTime(timings['Imsak'] ?? timings['Fajr'] ?? ''),
       fajr: cleanTime(timings['Fajr'] ?? ''),
@@ -39,7 +57,7 @@ class PrayerTime extends Equatable {
       sunrise: cleanTime(timings['Sunrise'] ?? ''),
       date: date['readable'] ?? '',
       hijriDate:
-          '${date['hijri']?['day'] ?? ''} ${date['hijri']?['month']?['en'] ?? ''} ${date['hijri']?['year'] ?? ''}H',
+          '${date['hijri']?['day'] ?? ''} $monthName ${date['hijri']?['year'] ?? ''}H',
     );
   }
 
