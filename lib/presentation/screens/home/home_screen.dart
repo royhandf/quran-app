@@ -16,8 +16,8 @@ import '../../widgets/home/prayer_card.dart';
 import '../dzikir/dzikir_screen.dart';
 import '../last_read/last_read_screen.dart';
 import '../prayer/prayer_times_screen.dart';
+import '../prayer/qibla_screen.dart';
 import '../quran/surah_list_screen.dart';
-import '../search/search_screen.dart';
 import '../settings/settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -236,10 +236,21 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: () => _navigate(const SurahListScreen()),
       ),
       MenuItem(
-        label: 'Pencarian',
-        arabic: 'بحث',
-        icon: Icons.search_rounded,
-        onTap: () => _navigate(const SearchScreen()),
+        label: 'Arah Kiblat',
+        arabic: 'القبلة',
+        icon: Icons.explore_rounded,
+        onTap: () {
+          final state = context.read<PrayerCubit>().state;
+          if (state is PrayerLoaded) {
+            _navigate(
+              QiblaScreen(qiblaDirection: state.qiblaDirection ?? 0.0),
+            );
+          } else {
+            // Data jadwal belum termuat - arahkan ke halaman jadwal
+            // yang memuat arah kiblat.
+            _navigate(const PrayerTimesScreen());
+          }
+        },
       ),
       MenuItem(
         label: 'Jadwal Sholat',
