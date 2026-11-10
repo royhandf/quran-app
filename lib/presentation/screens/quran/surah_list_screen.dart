@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_text_styles.dart';
+import '../../../core/constants/app_tokens.dart';
 import '../../../data/models/surah.dart';
 import '../../blocs/quran/quran_cubit.dart';
 import '../../blocs/quran/quran_state.dart';
 import '../../blocs/audio/audio_cubit.dart';
+import '../../widgets/star_icon_container.dart';
 import 'surah_detail_screen.dart';
 
 class SurahListScreen extends StatefulWidget {
@@ -30,23 +32,60 @@ class _SurahListScreenState extends State<SurahListScreen> {
     super.dispose();
   }
 
+  void _closeSearch() {
+    setState(() {
+      _isSearching = false;
+      _searchController.clear();
+      context.read<QuranCubit>().searchSurahs('');
+    });
+  }
+
   void _showDeleteDialog(BuildContext context, int surahId) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Hapus Data Offline'),
-        content: const Text('Hapus data surah yang sudah didownload?'),
+        backgroundColor: AppColors.homeSurface(context),
+        title: Text(
+          'Hapus Data Offline',
+          style: TextStyle(
+            fontFamily: AppTokens.fontLatin,
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            color: AppColors.homeInk(ctx),
+          ),
+        ),
+        content: Text(
+          'Hapus data surah yang sudah didownload?',
+          style: TextStyle(
+            fontFamily: AppTokens.fontLatin,
+            fontSize: 14,
+            color: AppColors.homeInkSecondary(ctx),
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal'),
+            child: Text(
+              'Batal',
+              style: TextStyle(
+                fontFamily: AppTokens.fontLatin,
+                color: AppColors.homeInkSecondary(ctx),
+              ),
+            ),
           ),
           TextButton(
             onPressed: () {
               context.read<QuranCubit>().deleteSurah(surahId);
               Navigator.pop(ctx);
             },
-            child: const Text('Hapus'),
+            child: Text(
+              'Hapus',
+              style: TextStyle(
+                fontFamily: AppTokens.fontLatin,
+                color: AppColors.homeDanger(ctx),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
@@ -86,43 +125,60 @@ class _SurahListScreenState extends State<SurahListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background(context),
+      backgroundColor: AppColors.homeBackground(context),
       appBar: AppBar(
-        backgroundColor: AppColors.background(context),
+        backgroundColor: AppColors.homeBackground(context),
         elevation: 0,
         scrolledUnderElevation: 0,
+        iconTheme: IconThemeData(color: AppColors.homeInk(context)),
+        automaticallyImplyLeading: !_isSearching,
+        leading: _isSearching
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back_rounded),
+                onPressed: _closeSearch,
+              )
+            : null,
         title: _isSearching
             ? TextField(
                 controller: _searchController,
                 autofocus: true,
-                style: AppTextStyles.bodyMedium(context),
+                cursorColor: AppColors.forest,
+                style: TextStyle(
+                  fontFamily: AppTokens.fontLatin,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.homeInk(context),
+                ),
                 decoration: InputDecoration(
-                  hintText: 'Cari surah...',
-                  hintStyle: AppTextStyles.bodyMedium(
-                    context,
-                  ).copyWith(color: AppColors.textSecondary(context)),
+                  hintText: 'Cari surah…',
+                  hintStyle: TextStyle(
+                    fontFamily: AppTokens.fontLatin,
+                    fontSize: 16,
+                    color: AppColors.homeInkSecondary(context),
+                  ),
                   border: InputBorder.none,
                 ),
                 onChanged: (query) {
                   context.read<QuranCubit>().searchSurahs(query);
+                  setState(() {});
                 },
               )
-            : Text("Baca Qur'an", style: AppTextStyles.headingSmall(context)),
+            : Text("Baca Qur'an", style: AppTokens.pageTitle(context)),
         actions: [
-          IconButton(
-            icon: Icon(
-              _isSearching ? Icons.close_rounded : Icons.search_rounded,
+          if (_isSearching)
+            IconButton(
+              icon: const Icon(Icons.close_rounded),
+              onPressed: () {
+                _searchController.clear();
+                context.read<QuranCubit>().searchSurahs('');
+                setState(() {});
+              },
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.search_rounded),
+              onPressed: () => setState(() => _isSearching = true),
             ),
-            onPressed: () {
-              setState(() {
-                _isSearching = !_isSearching;
-                if (!_isSearching) {
-                  _searchController.clear();
-                  context.read<QuranCubit>().searchSurahs('');
-                }
-              });
-            },
-          ),
         ],
       ),
       body: _buildSurahList(),
@@ -147,23 +203,30 @@ class _SurahListScreenState extends State<SurahListScreen> {
         }
         if (state is SurahsLoaded) {
           if (state.surahs.isEmpty) {
-            return _buildEmptySearch();
+            return _buildEmptySearch(context);
           }
           return ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+            padding: const EdgeInsets.fromLTRB(AppTokens.pageMargin, 8, AppTokens.pageMargin, 32),
             itemCount: state.surahs.length,
             itemBuilder: (context, index) {
               final surah = state.surahs[index];
               final isDownloading = state.downloadingSurahId == surah.id;
               return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.only(bottom: AppTokens.itemGap),
                 child: _SurahCard(
                   surah: surah,
                   isDownloading: isDownloading,
                   isDownloaded: state.downloadedIds.contains(surah.id),
+                  highlightQuery: _isSearching ? _searchController.text : '',
                   onTap: () => _openSurah(context, surah),
-                  onDownload: () =>
-                      context.read<QuranCubit>().downloadSurah(surah.id),
+                  onDownload: () {
+                    context.read<QuranCubit>().downloadSurah(surah.id);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Mengunduh ${surah.nameSimple}…'),
+                      ),
+                    );
+                  },
                   onDeleteOffline: () =>
                       _showDeleteDialog(context, surah.id),
                 ),
@@ -178,11 +241,11 @@ class _SurahListScreenState extends State<SurahListScreen> {
 
   Widget _buildLoading() {
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+      padding: const EdgeInsets.fromLTRB(AppTokens.pageMargin, 8, AppTokens.pageMargin, 32),
       itemCount: 12,
       itemBuilder: (context, index) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: _ShimmerCard(context: context),
+        padding: const EdgeInsets.only(bottom: AppTokens.itemGap),
+        child: const _ShimmerCard(),
       ),
     );
   }
@@ -192,83 +255,76 @@ class _SurahListScreenState extends State<SurahListScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: AppColors.textSecondary(context).withValues(alpha: 0.08),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.wifi_off_rounded,
-              size: 34,
-              color: AppColors.textSecondary(context),
-            ),
+          StarIconContainer(
+            icon: Icons.wifi_off_rounded,
+            containerColor: AppColors.homeStarSecondary(context),
+            iconColor: AppColors.homeInkSecondary(context),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Text(
             'Gagal memuat daftar surah',
-            style: AppTextStyles.bodyLarge(
-              context,
-            ).copyWith(fontWeight: FontWeight.w600),
+            style: AppTokens.tileTitle(context),
           ),
           const SizedBox(height: 6),
           Text(
             'Periksa koneksi internet dan coba lagi',
-            style: AppTextStyles.bodySmall(context),
+            style: AppTokens.tileSubtitle(context),
           ),
-          const SizedBox(height: 20),
-          FilledButton.icon(
-            onPressed: () => context.read<QuranCubit>().loadSurahs(),
-            icon: const Icon(Icons.refresh_rounded, size: 18),
-            label: const Text('Coba Lagi'),
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppTokens.pageMargin),
+            child: SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: FilledButton(
+                onPressed: () => context.read<QuranCubit>().loadSurahs(),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.forest,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTokens.buttonRadius),
+                  ),
+                ),
+                child: Text(
+                  'Coba Lagi',
+                  style: TextStyle(
+                    fontFamily: AppTokens.fontLatin,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildEmptySearch() {
+  Widget _buildEmptySearch(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: AppColors.textSecondary(context).withValues(alpha: 0.08),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.search_off_rounded,
-              size: 34,
-              color: AppColors.textSecondary(context),
-            ),
+          StarIconContainer(
+            icon: Icons.search_off_rounded,
+            containerColor: AppColors.homeStarSecondary(context),
+            iconColor: AppColors.homeInkSecondary(context),
           ),
-          const SizedBox(height: 16),
-          Text(
-            'Tidak ditemukan',
-            style: AppTextStyles.bodyLarge(
-              context,
-            ).copyWith(fontWeight: FontWeight.w600),
-          ),
+          const SizedBox(height: 20),
+          Text('Tidak ditemukan', style: AppTokens.tileTitle(context)),
           const SizedBox(height: 6),
-          Text(
-            'Coba kata kunci lain',
-            style: AppTextStyles.bodySmall(context),
-          ),
+          Text('Coba kata kunci lain', style: AppTokens.tileSubtitle(context)),
         ],
       ),
     );
   }
 }
 
-// ── Surah card ─────────────────────────────────────────────────────────────────
 class _SurahCard extends StatefulWidget {
   final Surah surah;
   final bool isDownloading;
   final bool isDownloaded;
+  final String highlightQuery;
   final VoidCallback onTap;
   final VoidCallback onDownload;
   final VoidCallback onDeleteOffline;
@@ -277,6 +333,7 @@ class _SurahCard extends StatefulWidget {
     required this.surah,
     required this.isDownloading,
     required this.isDownloaded,
+    required this.highlightQuery,
     required this.onTap,
     required this.onDownload,
     required this.onDeleteOffline,
@@ -289,9 +346,27 @@ class _SurahCard extends StatefulWidget {
 class _SurahCardState extends State<_SurahCard> {
   bool _pressed = false;
 
+  List<TextSpan> _nameSpans(BuildContext context) {
+    final base = AppTokens.tileTitle(context);
+    final query = widget.highlightQuery.trim().toLowerCase();
+    final name = widget.surah.nameSimple;
+    if (query.isEmpty) return [TextSpan(text: name)];
+    final idx = name.toLowerCase().indexOf(query);
+    if (idx < 0) return [TextSpan(text: name)];
+    return [
+      TextSpan(text: name.substring(0, idx)),
+      TextSpan(
+        text: name.substring(idx, idx + query.length),
+        style: base.copyWith(color: AppColors.forest),
+      ),
+      TextSpan(text: name.substring(idx + query.length)),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = widget.surah;
+    final place = s.revelationPlace == 'makkah' ? 'MEKAH' : 'MADINAH';
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) {
@@ -305,103 +380,105 @@ class _SurahCardState extends State<_SurahCard> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-            color: AppColors.card(context),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: AppColors.dividerColor(context),
-              width: 1,
-            ),
+            color: AppColors.homeSurface(context),
+            borderRadius: BorderRadius.circular(AppTokens.cardRadius),
           ),
           child: Row(
             children: [
-              // Nomor surah
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Center(
-                  child: Text(
-                    '${s.id}',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
+              StarIconContainer(
+                label: '${s.id}',
+                containerColor: AppColors.homeStarSecondary(context),
+                iconColor: AppColors.homeArabicSecondary(context),
               ),
               const SizedBox(width: 14),
-              // Info surah
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      s.nameSimple,
-                      style: AppTextStyles.bodyMedium(
-                        context,
-                      ).copyWith(fontWeight: FontWeight.w700),
+                    RichText(
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      text: TextSpan(
+                        children: _nameSpans(context),
+                        style: AppTokens.tileTitle(context),
+                      ),
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      '${s.translatedName} · ${s.revelationPlace == 'makkah' ? 'Mekah' : 'Madinah'} · ${s.versesCount} Ayat',
-                      style: AppTextStyles.bodySmall(context),
+                      '${s.translatedName} · ${s.versesCount} ayat',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTokens.tileSubtitle(context),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      place,
+                      style: TextStyle(
+                        fontFamily: AppTokens.fontLatin,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1,
+                        color: AppColors.homeInkSecondary(context),
+                      ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 10),
-              // Nama Arab + status download
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
                     s.nameArabic,
-                    style: AppTextStyles.arabicMedium(context).copyWith(
+                    style: TextStyle(
+                      fontFamily: AppTokens.fontArabic,
                       fontSize: 20,
+                      color: AppColors.homeInk(context),
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   if (widget.isDownloading)
                     const SizedBox(
-                      width: 28,
-                      height: 28,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      width: 30,
+                      height: 30,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: AppColors.sage,
+                      ),
                     )
                   else if (widget.isDownloaded)
                     GestureDetector(
                       onLongPress: widget.onDeleteOffline,
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.check_circle_rounded,
-                          color: AppColors.primary,
-                          size: 20,
+                      child: Material(
+                        color: AppColors.forest,
+                        shape: const CircleBorder(),
+                        clipBehavior: Clip.antiAlias,
+                        child: SizedBox(
+                          width: 32,
+                          height: 32,
+                          child: Icon(
+                            Icons.check_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
                         ),
                       ),
                     )
                   else
                     GestureDetector(
                       onTap: widget.onDownload,
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.10),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.download_outlined,
-                          color: AppColors.primary,
-                          size: 20,
+                      child: Material(
+                        color: AppColors.homeStarSecondary(context),
+                        shape: const CircleBorder(),
+                        clipBehavior: Clip.antiAlias,
+                        child: SizedBox(
+                          width: 32,
+                          height: 32,
+                          child: Icon(
+                            Icons.download_outlined,
+                            color: AppColors.homeArabicSecondary(context),
+                            size: 18,
+                          ),
                         ),
                       ),
                     ),
@@ -415,31 +492,25 @@ class _SurahCardState extends State<_SurahCard> {
   }
 }
 
-// ── Shimmer placeholder saat loading ──────────────────────────────────────────
 class _ShimmerCard extends StatelessWidget {
-  final BuildContext context;
-  const _ShimmerCard({required this.context});
+  const _ShimmerCard();
 
   @override
   Widget build(BuildContext context) {
-    final base = AppColors.dividerColor(context);
+    final base = AppColors.homeDivider(context);
     return Container(
-      height: 70,
+      height: 86,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: base, width: 1),
+        color: AppColors.homeSurface(context),
+        borderRadius: BorderRadius.circular(AppTokens.cardRadius),
       ),
       child: Row(
         children: [
           Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: base,
-              borderRadius: BorderRadius.circular(10),
-            ),
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(color: base, shape: BoxShape.circle),
           ),
           const SizedBox(width: 14),
           Expanded(
