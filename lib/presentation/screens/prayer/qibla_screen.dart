@@ -1,201 +1,200 @@
+import 'dart:async';
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_compass/flutter_compass.dart';
-import 'package:quran_app/core/constants/app_colors.dart';
 
-class QiblaScreen extends StatelessWidget {
+import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_tokens.dart';
+import '../../widgets/star_icon_container.dart';
+
+const _directions = {'U': 0.0, 'T': 90.0, 'S': 180.0, 'B': 270.0};
+
+class QiblaScreen extends StatefulWidget {
   final double qiblaDirection;
 
   const QiblaScreen({super.key, required this.qiblaDirection});
 
   @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  State<QiblaScreen> createState() => _QiblaScreenState();
+}
 
+class _QiblaScreenState extends State<QiblaScreen> {
+  double _displayHeading = 0;
+  bool _hasHeading = false;
+  StreamSubscription<CompassEvent>? _subscription;
+
+  static const double _alignTolerance = 5;
+
+  @override
+  void initState() {
+    super.initState();
+    _subscription = FlutterCompass.events?.listen((event) {
+      final heading = event.heading;
+      if (heading == null || !mounted) return;
+      final delta = ((heading - _displayHeading) % 360 + 540) % 360 - 180;
+      if (delta.abs() < 0.2) return;
+      setState(() {
+        _displayHeading += delta;
+        _hasHeading = true;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
+  bool get _isAligned {
+    final diff = ((widget.qiblaDirection - _displayHeading) % 360 + 360) % 360;
+    return diff < _alignTolerance || diff > 360 - _alignTolerance;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background(context),
+      backgroundColor: AppColors.homeBackground(context),
       appBar: AppBar(
-        backgroundColor: AppColors.background(context),
+        backgroundColor: AppColors.homeBackground(context),
         elevation: 0,
         scrolledUnderElevation: 0,
-        title: Text(
-          'Arah Kiblat',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
-            color: AppColors.textPrimary(context),
-          ),
-        ),
+        iconTheme: IconThemeData(color: AppColors.homeInk(context)),
+        title: Text('Arah Kiblat', style: AppTokens.pageTitle(context)),
       ),
-      body: StreamBuilder<CompassEvent>(
-        stream: FlutterCompass.events,
-        builder: (context, snapshot) {
-          if (!snapshot.hasData || snapshot.data!.heading == null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.compass_calibration_outlined,
-                      size: 38,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'Sensor kompas tidak tersedia',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      color: AppColors.textPrimary(context),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Putar dan gerakkan HP Anda\nuntuk kalibrasi kompas',
-                    style: TextStyle(
-                      color: AppColors.textSecondary(context),
-                      fontSize: 13,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            );
-          }
-
-          final heading = snapshot.data!.heading ?? 0.0;
-          final qiblaAngle = (qiblaDirection - heading) * (math.pi / 180);
-          final diffDegrees = ((qiblaDirection - heading) % 360 + 360) % 360;
-          final isAligned = diffDegrees < 5 || diffDegrees > 355;
-
-          return OrientationBuilder(
-            builder: (context, orientation) {
-              final isLandscape = orientation == Orientation.landscape;
-              final compassSize = isLandscape ? 200.0 : 280.0;
-
-              final compassWidget = _buildCompass(
-                isDark: isDark,
-                heading: heading,
-                qiblaAngle: qiblaAngle,
-                isAligned: isAligned,
-                size: compassSize,
-              );
-              final statusWidget = _buildStatus(isAligned);
-              final infoWidget = _buildInfoRow(
-                context,
-                qiblaDirection: qiblaDirection,
-                heading: heading,
-              );
-              final hintWidget = Text(
-                'Gerakkan HP Anda agar kompas akurat',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary(context),
-                ),
-                textAlign: TextAlign.center,
-              );
-
-              if (isLandscape) {
-                return SafeArea(
-                  child: Row(
+      body: !_hasHeading
+          ? _buildNoSensor(context)
+          : SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final compassSize =
+                      (constraints.maxWidth - 2 * AppTokens.pageMargin).clamp(
+                        0.0,
+                        340.0,
+                      );
+                  return Column(
                     children: [
-                      Expanded(flex: 5, child: Center(child: compassWidget)),
+                      const SizedBox(height: 12),
+                      _StateChip(aligned: _isAligned),
                       Expanded(
-                        flex: 4,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              statusWidget,
-                              const SizedBox(height: 24),
-                              infoWidget,
-                              const SizedBox(height: 16),
-                              hintWidget,
-                            ],
+                        child: Center(
+                          child: _Compass(
+                            size: compassSize,
+                            displayHeading: _displayHeading,
+                            qiblaDirection: widget.qiblaDirection,
+                            aligned: _isAligned,
                           ),
                         ),
                       ),
+                      _InfoCards(
+                        qibla: widget.qiblaDirection,
+                        heading: _displayHeading,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        _isAligned
+                            ? 'Tahan posisi ini agar tetap menghadap kiblat.'
+                            : 'Gerakkan HP Anda agar kompas akurat.',
+                        style: AppTokens.tileSubtitle(context),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
                     ],
-                  ),
-                );
-              }
-
-              return Column(
-                children: [
-                  const SizedBox(height: 32),
-                  statusWidget,
-                  const Spacer(),
-                  compassWidget,
-                  const Spacer(),
-                  infoWidget,
-                  const SizedBox(height: 16),
-                  hintWidget,
-                  const SizedBox(height: 32),
-                ],
-              );
-            },
-          );
-        },
-      ),
+                  );
+                },
+              ),
+            ),
     );
   }
 
-  Widget _buildStatus(bool isAligned) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 400),
-      margin: const EdgeInsets.symmetric(horizontal: 32),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+  Widget _buildNoSensor(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          StarIconContainer(
+            icon: Icons.compass_calibration_outlined,
+            size: 72,
+            containerColor: AppColors.homeStarSecondary(context),
+            iconColor: AppColors.homeArabicSecondary(context),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Sensor kompas tidak tersedia',
+            style: AppTokens.tileTitle(context),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Putar dan gerakkan HP Anda\nuntuk kalibrasi kompas',
+            style: AppTokens.tileSubtitle(context),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StateChip extends StatelessWidget {
+  final bool aligned;
+
+  const _StateChip({required this.aligned});
+
+  @override
+  Widget build(BuildContext context) {
+    final forest = AppColors.forest;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: isAligned
-            ? Colors.green.withValues(alpha: 0.15)
-            : AppColors.primary.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: isAligned ? Colors.green : AppColors.primary,
-          width: 1.5,
-        ),
+        color: aligned ? forest : Colors.transparent,
+        borderRadius: BorderRadius.circular(100),
+        border: aligned ? null : Border.all(color: forest, width: 1.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            isAligned ? Icons.check_circle : Icons.explore_outlined,
-            color: isAligned ? Colors.green : AppColors.primary,
-            size: 18,
+            aligned ? Icons.check_rounded : Icons.explore_rounded,
+            size: 16,
+            color: aligned ? Colors.white : forest,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           Text(
-            isAligned ? '🕋  Menghadap Kiblat!' : 'Putar ke arah kiblat',
+            aligned ? 'Anda menghadap kiblat' : 'Putar ke arah kiblat',
             style: TextStyle(
+              fontFamily: AppTokens.fontLatin,
+              fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: isAligned ? Colors.green : AppColors.primary,
+              color: aligned ? Colors.white : forest,
             ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildCompass({
-    required bool isDark,
-    required double heading,
-    required double qiblaAngle,
-    required bool isAligned,
-    required double size,
-  }) {
-    final needleScale = size / 280.0;
+class _Compass extends StatelessWidget {
+  final double size;
+  final double displayHeading;
+  final double qiblaDirection;
+  final bool aligned;
+
+  const _Compass({
+    required this.size,
+    required this.displayHeading,
+    required this.qiblaDirection,
+    required this.aligned,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final ringColor = AppColors.homeArabicSecondary(context);
+    final needleColor = aligned
+        ? AppColors.homeInk(context)
+        : AppColors.homeArabicSecondary(context);
+
     return SizedBox(
       width: size,
       height: size,
@@ -207,194 +206,280 @@ class QiblaScreen extends StatelessWidget {
             height: size,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.3),
-                width: 2,
-              ),
-              color: isDark ? const Color(0xFF1A1A2E) : const Color(0xFFF0F4FF),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  blurRadius: 20,
-                  spreadRadius: 4,
-                ),
-              ],
+              color: AppColors.homeSurface(context),
+              border: Border.all(color: ringColor, width: aligned ? 2.5 : 1.5),
             ),
           ),
-
-          Transform.rotate(
-            angle: -heading * (math.pi / 180),
+          CustomPaint(
+            size: Size(size * 0.52, size * 0.52),
+            painter: _KhatamPainter(color: ringColor.withValues(alpha: 0.35)),
+          ),
+          AnimatedRotation(
+            turns: -displayHeading / 360,
+            duration: const Duration(milliseconds: 120),
+            curve: Curves.easeOut,
             child: SizedBox(
               width: size,
               height: size,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  _directionLabel(
-                    'U',
-                    0,
-                    isDark,
-                    isNorth: true,
-                    radius: size * 0.39,
+                  CustomPaint(
+                    size: Size(size, size),
+                    painter: _TickPainter(
+                      color: AppColors.homeInkSecondary(context),
+                    ),
                   ),
-                  _directionLabel('S', math.pi, isDark, radius: size * 0.39),
-                  _directionLabel(
-                    'T',
-                    math.pi / 2,
-                    isDark,
-                    radius: size * 0.39,
-                  ),
-                  _directionLabel(
-                    'B',
-                    -math.pi / 2,
-                    isDark,
-                    radius: size * 0.39,
+                  for (final entry in _directions.entries)
+                    Transform.translate(
+                      offset: Offset(
+                        math.sin(entry.value * math.pi / 180) * size * 0.36,
+                        -math.cos(entry.value * math.pi / 180) * size * 0.36,
+                      ),
+                      child: Text(
+                        entry.key,
+                        style: TextStyle(
+                          fontFamily: AppTokens.fontLatin,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.homeArabicSecondary(context),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          AnimatedRotation(
+            turns: (qiblaDirection - displayHeading) / 360,
+            duration: const Duration(milliseconds: 120),
+            curve: Curves.easeOut,
+            child: SizedBox(
+              width: size,
+              height: size,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Positioned(
+                    top: size * 0.06,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _KabahMarker(size: 22),
+                        const SizedBox(height: 4),
+                        Container(
+                          width: 4,
+                          height: size * 0.3,
+                          decoration: BoxDecoration(
+                            color: needleColor,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
           ),
-
-          Transform.rotate(
-            angle: qiblaAngle,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 10 * needleScale,
-                  height: 80 * needleScale,
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(10),
-                    ),
-                    color: isAligned ? Colors.green : AppColors.primary,
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.all(6 * needleScale),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isAligned ? Colors.green : AppColors.primary,
-                  ),
-                  child: Text(
-                    '🕋',
-                    style: TextStyle(fontSize: 16 * needleScale),
-                  ),
-                ),
-                Container(
-                  width: 6 * needleScale,
-                  height: 50 * needleScale,
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.vertical(
-                      bottom: Radius.circular(6),
-                    ),
-                    color: (isAligned ? Colors.green : AppColors.primary)
-                        .withValues(alpha: 0.4),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
           Container(
             width: 14,
             height: 14,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: isDark ? Colors.white : Colors.black,
-              border: Border.all(color: AppColors.primary, width: 2),
+              color: AppColors.homeBackground(context),
+              border: Border.all(color: needleColor, width: 2),
             ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildInfoRow(
-    BuildContext context, {
-    required double qiblaDirection,
-    required double heading,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        decoration: BoxDecoration(
-          color: AppColors.card(context),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppColors.dividerColor(context)),
+class _TickPainter extends CustomPainter {
+  final Color color;
+
+  _TickPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2;
+    final minor = Paint()
+      ..color = color.withValues(alpha: 0.35)
+      ..strokeWidth = 1
+      ..strokeCap = StrokeCap.round;
+    final major = Paint()
+      ..color = color.withValues(alpha: 0.6)
+      ..strokeWidth = 1.5
+      ..strokeCap = StrokeCap.round;
+
+    for (var i = 0; i < 60; i++) {
+      final angle = i * 6 * math.pi / 180;
+      final isMajor = i % 5 == 0;
+      final paint = isMajor ? major : minor;
+      final inner = radius - (isMajor ? 14 : 9);
+      canvas.drawLine(
+        Offset(
+          center.dx + math.sin(angle) * inner,
+          center.dy - math.cos(angle) * inner,
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _infoTile(
-              context,
+        Offset(
+          center.dx + math.sin(angle) * (radius - 4),
+          center.dy - math.cos(angle) * (radius - 4),
+        ),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _TickPainter oldDelegate) =>
+      oldDelegate.color != color;
+}
+
+class _KhatamPainter extends CustomPainter {
+  final Color color;
+
+  _KhatamPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final side = size.width * 0.72;
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    for (final angle in [0.0, math.pi / 4]) {
+      canvas.save();
+      canvas.translate(center.dx, center.dy);
+      canvas.rotate(angle);
+      canvas.drawRect(
+        Rect.fromCenter(center: Offset.zero, width: side, height: side),
+        paint,
+      );
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _KhatamPainter oldDelegate) =>
+      oldDelegate.color != color;
+}
+
+class _KabahMarker extends StatelessWidget {
+  final double size;
+
+  const _KabahMarker({required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        children: [
+          Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              color: AppColors.forest,
+              borderRadius: BorderRadius.circular(3),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.7),
+                width: 1,
+              ),
+            ),
+          ),
+          Positioned(
+            top: size * 0.3,
+            left: 0,
+            right: 0,
+            child: Container(height: size * 0.26, color: AppColors.gold),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoCards extends StatelessWidget {
+  final double qibla;
+  final double heading;
+
+  const _InfoCards({required this.qibla, required this.heading});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppTokens.pageMargin),
+      child: Row(
+        children: [
+          Expanded(
+            child: _InfoCard(
               icon: Icons.navigation_outlined,
               label: 'Arah Kiblat',
-              value: '${qiblaDirection.toStringAsFixed(1)}°',
+              value: '${qibla.toStringAsFixed(1)}°',
             ),
-            Container(
-              width: 1,
-              height: 40,
-              color: AppColors.dividerColor(context),
-            ),
-            _infoTile(
-              context,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _InfoCard(
               icon: Icons.explore_outlined,
               label: 'Kompas',
-              value: '${heading.toStringAsFixed(1)}°',
+              value: '${(heading % 360).toStringAsFixed(1)}°',
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _directionLabel(
-    String label,
-    double angle,
-    bool isDark, {
-    bool isNorth = false,
-    double radius = 110.0,
-  }) {
-    return Transform.translate(
-      offset: Offset(math.sin(angle) * radius, -math.cos(angle) * radius),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 16,
-          color: isNorth
-              ? Colors.red
-              : (isDark ? Colors.white70 : Colors.black54),
-        ),
-      ),
-    );
-  }
-
-  Widget _infoTile(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
-    return Column(
-      children: [
-        Icon(icon, color: AppColors.primary, size: 20),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: AppColors.textSecondary(context),
           ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-      ],
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _InfoCard({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      decoration: BoxDecoration(
+        color: AppColors.homeSurface(context),
+        borderRadius: BorderRadius.circular(AppTokens.cardRadius),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 18, color: AppColors.homeArabicSecondary(context)),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: AppTokens.tileSubtitle(context),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: TextStyle(
+              fontFamily: AppTokens.fontLatin,
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: AppColors.homeInk(context),
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

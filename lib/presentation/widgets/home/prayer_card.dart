@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_tokens.dart';
+import '../../../data/models/prayer_time.dart';
 import '../../blocs/prayer/prayer_state.dart';
 
 const _prayerArabic = {
@@ -17,8 +18,24 @@ const _prayerArabic = {
 
 class PrayerCard extends StatelessWidget {
   final PrayerLoaded data;
+  final bool use12h;
+  final String zoneLabel;
+  final bool showRemaining;
+  final VoidCallback? onKiblatTap;
 
-  const PrayerCard({super.key, required this.data});
+  final String? dateHeading;
+
+  const PrayerCard({
+    super.key,
+    required this.data,
+    this.use12h = false,
+    this.zoneLabel = 'WIB',
+    this.showRemaining = true,
+    this.onKiblatTap,
+    this.dateHeading,
+  });
+
+  String _formatTime(String hhmm) => use12h ? PrayerTime.to12Hour(hhmm) : hhmm;
 
   String get _city {
     final name = data.locationName;
@@ -47,29 +64,31 @@ class PrayerCard extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          const Positioned.fill(
-            child: ColoredBox(color: AppColors.forest),
-          ),
+          const Positioned.fill(child: ColoredBox(color: AppColors.forest)),
           Positioned.fill(
             child: IgnorePointer(
               child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final scale = (constraints.maxHeight / 192).clamp(1.0, 1.6);
-                  final width = 350 * scale;
-                  final height = 220 * scale;
+                builder: (context, card) {
+                  final scale = (card.maxHeight / 192).clamp(1.0, 2.0);
+                  final ornWidth = 350 * scale;
+                  final ornHeight = 220 * scale;
                   return OverflowBox(
-                    maxWidth: width,
-                    maxHeight: height,
                     alignment: Alignment.bottomRight,
-                    child: Transform.translate(
-                      // Setengah pitch bintang (pitch horizontal 64) supaya
-                      // tepi card memotong badan bintang, bukan ujungnya.
-                      offset: Offset(32 * scale, 0),
-                      child: SvgPicture.asset(
-                        'assets/images/ornamen-kartu-sholat-v2.svg',
-                        width: width,
-                        height: height,
-                        fit: BoxFit.none,
+                    minWidth: 0,
+                    minHeight: 0,
+                    maxWidth: ornWidth,
+                    maxHeight: ornHeight,
+                    child: SizedBox(
+                      width: ornWidth,
+                      height: ornHeight,
+                      child: Transform.translate(
+                        offset: Offset(32 * scale, 0),
+                        child: SvgPicture.asset(
+                          'assets/images/ornamen-kartu-sholat-v2.svg',
+                          width: ornWidth,
+                          height: ornHeight,
+                          fit: BoxFit.none,
+                        ),
                       ),
                     ),
                   );
@@ -100,42 +119,94 @@ class PrayerCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(_hijri, style: AppTokens.hijriDate),
-                  ],
-                ),
-                const SizedBox(height: 18),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        next?.name ?? 'Selesai',
-                        style: AppTokens.prayerName,
-                        overflow: TextOverflow.ellipsis,
+                    if (onKiblatTap != null)
+                      GestureDetector(
+                        onTap: onKiblatTap,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.18),
+                            borderRadius: BorderRadius.circular(100),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.explore_rounded,
+                                color: Colors.white,
+                                size: 13,
+                              ),
+                              SizedBox(width: 4),
+                              Text(
+                                'Kiblat',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      _prayerArabic[next?.name] ?? '',
-                      style: AppTokens.prayerArabic,
-                      textDirection: TextDirection.rtl,
-                    ),
                   ],
                 ),
-                const SizedBox(height: 2),
-                if (next != null)
+                const SizedBox(height: 6),
+                Text(_hijri, style: AppTokens.hijriDate),
+                const SizedBox(height: 18),
+                if (dateHeading != null) ...[
+                  Text(
+                    'JADWAL SHOLAT',
+                    style: AppTokens.cardLabel(
+                      context,
+                    ).copyWith(color: Colors.white.withValues(alpha: 0.7)),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    dateHeading!,
+                    style: AppTokens.prayerName.copyWith(fontSize: 22),
+                  ),
+                ] else if (next != null) ...[
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.baseline,
                     textBaseline: TextBaseline.alphabetic,
                     children: [
-                      Text(next.time, style: AppTokens.prayerTime),
-                      const SizedBox(width: 8),
-                      Text('WIB', style: AppTokens.prayerTimezone),
+                      Flexible(
+                        child: Text(
+                          next.name,
+                          style: AppTokens.prayerName,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        _prayerArabic[next.name] ?? '',
+                        style: AppTokens.prayerArabic,
+                        textDirection: TextDirection.rtl,
+                      ),
                     ],
                   ),
-                if (remainingText != null) ...[
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 2),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(_formatTime(next.time), style: AppTokens.prayerTime),
+                      const SizedBox(width: 8),
+                      Text(zoneLabel, style: AppTokens.prayerTimezone),
+                    ],
+                  ),
+                ] else ...[
+                  Text(
+                    'Semua waktu sholat\nsudah selesai',
+                    style: AppTokens.prayerName.copyWith(height: 1.3),
+                  ),
+                ],
+                const SizedBox(height: 14),
+                if (next != null && remainingText != null && showRemaining)
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 14,
@@ -146,8 +217,22 @@ class PrayerCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(100),
                     ),
                     child: Text(remainingText, style: AppTokens.prayerChip),
+                  )
+                else if (next == null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 7,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                    child: Text(
+                      'Subuh besok pukul ${_formatTime(data.prayerTime.fajr)}',
+                      style: AppTokens.prayerChip,
+                    ),
                   ),
-                ],
               ],
             ),
           ),

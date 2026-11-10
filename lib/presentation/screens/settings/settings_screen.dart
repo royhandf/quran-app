@@ -5,6 +5,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_tokens.dart';
 import '../../blocs/settings/settings_cubit.dart';
 import '../../blocs/settings/settings_state.dart';
+import '../../widgets/sheet_shell.dart';
 import '../../widgets/star_icon_container.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -171,7 +172,8 @@ class SettingsScreen extends StatelessWidget {
                             current: settings.latinFontSize.toInt(),
                             arabic: false,
                             latinSample: true,
-                            onApply: (v) => cubit.setLatinFontSize(v.toDouble()),
+                            onApply: (v) =>
+                                cubit.setLatinFontSize(v.toDouble()),
                           )
                         : null,
                   ),
@@ -241,7 +243,7 @@ class SettingsScreen extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (sheetContext) => _SheetShell(
+      builder: (sheetContext) => SheetShell(
         title: 'Mode Tema',
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -249,7 +251,7 @@ class SettingsScreen extends StatelessWidget {
             final mode = item['mode'] as ThemeMode;
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: _OptionTile(
+              child: SheetOptionTile(
                 icon: item['icon'] as IconData,
                 label: item['label'] as String,
                 selected: settings.themeMode == mode,
@@ -274,7 +276,7 @@ class SettingsScreen extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (sheetContext) => _SheetShell(
+      builder: (sheetContext) => SheetShell(
         title: 'Qori Murattal',
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -282,7 +284,7 @@ class SettingsScreen extends StatelessWidget {
             final id = r['id'] as int;
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: _OptionTile(
+              child: SheetOptionTile(
                 label: r['name'] as String,
                 selected: settings.selectedReciterId == id,
                 onTap: () {
@@ -323,7 +325,7 @@ class SettingsScreen extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (sheetContext) => _SheetShell(
+      builder: (sheetContext) => SheetShell(
         title: 'Jenis Penulisan Arab',
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -331,7 +333,7 @@ class SettingsScreen extends StatelessWidget {
             final isSelected = settings.arabicFontType == item['key'];
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: _OptionTile(
+              child: SheetOptionTile(
                 label: item['label'] as String,
                 subtitle: item['sub'] as String,
                 selected: isSelected,
@@ -344,7 +346,9 @@ class SettingsScreen extends StatelessWidget {
                   style: TextStyle(
                     fontFamily: item['font'] as String,
                     fontSize: 20,
-                    color: isSelected ? Colors.white : AppColors.homeInk(context),
+                    color: isSelected
+                        ? Colors.white
+                        : AppColors.homeInk(context),
                   ),
                   textDirection: TextDirection.rtl,
                 ),
@@ -413,7 +417,7 @@ class _FontSizeSheetState extends State<_FontSizeSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return _SheetShell(
+    return SheetShell(
       title: widget.title,
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -502,8 +506,14 @@ class _FontSizeSheetState extends State<_FontSizeSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('${widget.sizes.first} px', style: AppTokens.tileSubtitle(context)),
-              Text('${widget.sizes.last} px', style: AppTokens.tileSubtitle(context)),
+              Text(
+                '${widget.sizes.first} px',
+                style: AppTokens.tileSubtitle(context),
+              ),
+              Text(
+                '${widget.sizes.last} px',
+                style: AppTokens.tileSubtitle(context),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -618,9 +628,6 @@ class _SelectTile extends StatelessWidget {
                   iconColor: AppColors.homeArabicSecondary(context),
                 ),
                 const SizedBox(width: 14),
-                // Expanded ketat: menghabiskan seluruh sisa ruang, jadi
-                // tidak ada ruang mati yang bocor setelah panah dan grup
-                // nilai selalu nempel di tepi kanan di semua baris.
                 Expanded(
                   child: Text(
                     title,
@@ -796,140 +803,6 @@ class _TajwidRow extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SheetShell extends StatelessWidget {
-  final String title;
-  final Widget child;
-
-  const _SheetShell({required this.title, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.homeSheetSurface(context),
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(AppTokens.sheetRadius),
-          ),
-        ),
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-        child: SafeArea(
-          top: false,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: AppColors.homeDivider(context),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              Text(title, style: AppTokens.sheetTitle(context)),
-              const SizedBox(height: 16),
-              Flexible(child: SingleChildScrollView(child: child)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _OptionTile extends StatelessWidget {
-  final IconData? icon;
-  final String label;
-  final String? subtitle;
-  final bool selected;
-  final VoidCallback onTap;
-  final Widget? trailingPreview;
-
-  const _OptionTile({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-    this.icon,
-    this.subtitle,
-    this.trailingPreview,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: selected ? AppColors.forest : AppColors.homeOptionSurface(context),
-      borderRadius: BorderRadius.circular(AppTokens.buttonRadius),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppTokens.buttonRadius),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              if (icon != null) ...[
-                Icon(
-                  icon,
-                  size: 20,
-                  color: selected
-                      ? Colors.white
-                      : AppColors.homeInkSecondary(context),
-                ),
-                const SizedBox(width: 12),
-              ],
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      label,
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: selected
-                            ? Colors.white
-                            : AppColors.homeInk(context),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle!,
-                        style: AppTokens.tileSubtitle(context).copyWith(
-                          color: selected
-                              ? Colors.white70
-                              : AppColors.homeInkSecondary(context),
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10),
-              if (trailingPreview != null) ...[
-                trailingPreview!,
-                const SizedBox(width: 10),
-              ],
-              if (selected)
-                const Icon(Icons.check_rounded, size: 20, color: AppColors.gold),
-            ],
-          ),
         ),
       ),
     );

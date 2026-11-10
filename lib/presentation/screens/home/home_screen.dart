@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_tokens.dart';
 import '../../../core/services/update_service.dart';
+import '../../../data/models/prayer_time.dart';
 import '../../blocs/bookmark/bookmark_cubit.dart';
 import '../../blocs/bookmark/bookmark_state.dart';
 import '../../blocs/prayer/prayer_cubit.dart';
@@ -144,7 +145,11 @@ class _HomeScreenState extends State<HomeScreen> {
     return BlocBuilder<PrayerCubit, PrayerState>(
       builder: (context, state) {
         if (state is PrayerLoaded) {
-          return PrayerCard(data: state);
+          return PrayerCard(
+          data: state,
+          use12h: context.read<PrayerCubit>().use12HourFormat,
+          zoneLabel: PrayerTime.zoneLabelForNow(),
+        );
         }
         if (state is PrayerError) {
           return GestureDetector(

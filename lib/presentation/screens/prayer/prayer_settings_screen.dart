@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_text_styles.dart';
+import '../../../core/constants/app_tokens.dart';
 import '../../blocs/prayer/prayer_cubit.dart';
+import '../../widgets/sheet_shell.dart';
+import '../../widgets/star_icon_container.dart';
 
 class PrayerSettingsScreen extends StatefulWidget {
   const PrayerSettingsScreen({super.key});
+
   @override
   State<PrayerSettingsScreen> createState() => _PrayerSettingsScreenState();
 }
 
 class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
-
   static const List<Map<String, dynamic>> _methods = [
     {'id': 20, 'name': 'Kemenag - Indonesia'},
     {'id': 3, 'name': 'Muslim World League (MWL)'},
     {'id': 5, 'name': 'Egyptian General Authority'},
-    {'id': 4, 'name': "Umm Al-Qura University, Makkah"},
+    {'id': 4, 'name': 'Umm al-Qura University, Makkah'},
     {'id': 2, 'name': 'ISNA - Islamic Society of North America'},
     {'id': 1, 'name': 'University of Islamic Sciences, Karachi'},
     {'id': 7, 'name': 'Institute of Geophysics, University of Tehran'},
@@ -31,10 +34,117 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
 
   String _getMethodName(int id) {
     return _methods.firstWhere(
-          (m) => m['id'] == id,
-          orElse: () => _methods.first,
-        )['name']
+      (m) => m['id'] == id,
+      orElse: () => _methods.first,
+    )['name']
         as String;
+  }
+
+  void _reloadPrayerTimes() {
+    context.read<PrayerCubit>().loadPrayerTimes();
+  }
+
+  void _showMethodSheet(int currentMethod) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => SheetShell(
+        title: 'Metode Perhitungan',
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: _methods.map((m) {
+            final id = m['id'] as int;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: SheetOptionTile(
+                label: m['name'] as String,
+                selected: currentMethod == id,
+                onTap: () {
+                  context.read<PrayerCubit>().setPrayerMethod(id);
+                  Navigator.pop(sheetContext);
+                  _reloadPrayerTimes();
+                },
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  void _showSchoolSheet(int currentSchool) {
+    final schools = [
+      {
+        'id': 0,
+        'name': "Syafi'i / Maliki / Hanbali",
+        'sub': 'Waktu Ashar lebih awal',
+      },
+      {'id': 1, 'name': 'Hanafi', 'sub': 'Waktu Ashar lebih akhir'},
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => SheetShell(
+        title: 'Madzhab Ashar',
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: schools.map((s) {
+            final id = s['id'] as int;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: SheetOptionTile(
+                label: s['name'] as String,
+                subtitle: s['sub'] as String,
+                selected: currentSchool == id,
+                onTap: () {
+                  context.read<PrayerCubit>().setPrayerSchool(id);
+                  Navigator.pop(sheetContext);
+                  _reloadPrayerTimes();
+                },
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  void _showTimeFormatSheet(bool currentUse12h) {
+    final formats = [
+      {'value': false, 'name': '24 Jam', 'sub': 'Contoh: 14:30'},
+      {'value': true, 'name': '12 Jam (AM/PM)', 'sub': 'Contoh: 2:30 PM'},
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => SheetShell(
+        title: 'Format Waktu',
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: formats.map((f) {
+            final value = f['value'] as bool;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: SheetOptionTile(
+                label: f['name'] as String,
+                subtitle: f['sub'] as String,
+                selected: currentUse12h == value,
+                onTap: () {
+                  context.read<PrayerCubit>().setUse12HourFormat(value);
+                  Navigator.pop(sheetContext);
+                  setState(() {});
+                },
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
   }
 
   @override
@@ -46,128 +156,135 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
     final use12h = cubit.use12HourFormat;
 
     return Scaffold(
-      backgroundColor: AppColors.background(context),
+      backgroundColor: AppColors.homeBackground(context),
       appBar: AppBar(
-        title: Text(
-          'Pengaturan Jadwal',
-          style: AppTextStyles.headingSmall(context),
-        ),
-        backgroundColor: AppColors.background(context),
+        backgroundColor: AppColors.homeBackground(context),
         elevation: 0,
         scrolledUnderElevation: 0,
+        iconTheme: IconThemeData(color: AppColors.homeInk(context)),
+        title: Text('Pengaturan Jadwal', style: AppTokens.pageTitle(context)),
       ),
       body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.fromLTRB(
+          AppTokens.pageMargin,
+          4,
+          AppTokens.pageMargin,
+          32,
+        ),
         children: [
-          _SectionLabel(label: 'Perhitungan Jadwal Sholat'),
+          const _SectionLabel('Perhitungan Jadwal Sholat'),
           _SettingsCard(
             children: [
-              _SelectTile(
-                icon: Icons.calculate_outlined,
-                iconColor: const Color(0xFF1E88E5),
+              _SelectRow(
+                icon: Icons.calendar_month_rounded,
                 title: 'Metode Perhitungan',
                 value: _getMethodName(method),
-                onTap: () => _showMethodDialog(),
+                onTap: () => _showMethodSheet(method),
               ),
-              _Divider(),
-              _SelectTile(
-                icon: Icons.access_time_rounded,
-                iconColor: const Color(0xFF43A047),
+              const _TileDivider(),
+              _SelectRow(
+                icon: Icons.self_improvement_rounded,
                 title: 'Madzhab Ashar',
                 value: school == 0 ? "Syafi'i / Maliki / Hanbali" : 'Hanafi',
-                onTap: () => _showSchoolDialog(),
+                onTap: () => _showSchoolSheet(school),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-
-          _SectionLabel(label: 'Tanggal Hijriah'),
+          const _SectionLabel('Tanggal Hijriah'),
           _SettingsCard(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+                padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        _IconBox(
-                          icon: Icons.calendar_today_outlined,
-                          color: const Color(0xFF7C4DFF),
+                        StarIconContainer(
+                          icon: Icons.calendar_today_rounded,
+                          containerColor:
+                              AppColors.homeStarSecondary(context),
+                          iconColor: AppColors.homeArabicSecondary(context),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 14),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
                                 'Penyesuaian Tanggal Hijriah',
-                                style: AppTextStyles.bodyMedium(
-                                  context,
-                                ).copyWith(fontWeight: FontWeight.w500),
+                                style: AppTokens.tileTitle(context),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 adjustment == 0
                                     ? 'Tidak ada penyesuaian'
                                     : '${adjustment > 0 ? "+" : ""}$adjustment hari dari tanggal asli',
-                                style: AppTextStyles.bodySmall(context)
-                                    .copyWith(
-                                      color: adjustment == 0
-                                          ? AppColors.textSecondary(context)
-                                          : AppColors.primary,
-                                    ),
+                                style: AppTokens.tileSubtitle(context),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
                         ),
+                        const SizedBox(width: 10),
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 10,
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
+                            color: AppColors.homeStarSecondary(context),
+                            borderRadius: BorderRadius.circular(100),
                           ),
                           child: Text(
                             adjustment == 0
                                 ? '±0'
                                 : '${adjustment > 0 ? "+" : ""}$adjustment',
                             style: TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                              fontFamily: AppTokens.fontLatin,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.homeInk(context),
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        trackHeight: 4,
+                        activeTrackColor: AppColors.forest,
+                        inactiveTrackColor:
+                            AppColors.homeOptionSurface(context),
+                        thumbColor: AppColors.forest,
+                        overlayColor: AppColors.forest.withValues(alpha: 0.15),
+                      ),
+                      child: Slider(
+                        value: adjustment.toDouble(),
+                        min: -2,
+                        max: 2,
+                        divisions: 4,
+                        label: adjustment == 0
+                            ? '0'
+                            : '${adjustment > 0 ? "+" : ""}$adjustment',
+                        onChanged: (v) {
+                          context
+                              .read<PrayerCubit>()
+                              .setHijriAdjustment(v.toInt());
+                          setState(() {});
+                          _reloadPrayerTimes();
+                        },
+                      ),
+                    ),
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('-2', style: AppTextStyles.bodySmall(context)),
-                        Expanded(
-                          child: Slider(
-                            value: adjustment.toDouble(),
-                            min: -2,
-                            max: 2,
-                            divisions: 4,
-                            label: adjustment == 0
-                                ? '0'
-                                : '${adjustment > 0 ? "+" : ""}$adjustment',
-                            activeColor: AppColors.primary,
-                            inactiveColor: AppColors.primary.withValues(
-                              alpha: 0.2,
-                            ),
-                            onChanged: (v) {
-                              cubit.setHijriAdjustment(v.toInt());
-                              setState(() {});
-                              _reloadPrayerTimes();
-                            },
-                          ),
-                        ),
-                        Text('+2', style: AppTextStyles.bodySmall(context)),
+                        Text('-2', style: AppTokens.tileSubtitle(context)),
+                        Text('+2', style: AppTokens.tileSubtitle(context)),
                       ],
                     ),
                   ],
@@ -175,148 +292,48 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 8),
-
-          _SectionLabel(label: 'Lainnya'),
+          const _SectionLabel('Lainnya'),
           _SettingsCard(
             children: [
-              _SelectTile(
+              _SelectRow(
                 icon: Icons.schedule_rounded,
-                iconColor: const Color(0xFFE53935),
                 title: 'Format Waktu',
                 value: use12h ? '12 Jam (AM/PM)' : '24 Jam',
-                onTap: () => _showTimeFormatDialog(),
+                onTap: () => _showTimeFormatSheet(use12h),
               ),
             ],
           ),
-          const SizedBox(height: 32),
         ],
       ),
     );
   }
-
-  void _showMethodDialog() {
-    final cubit = context.read<PrayerCubit>();
-    final currentMethod = cubit.prayerMethod;
-    _showOptionsBottomSheet(
-      title: 'Metode Perhitungan',
-      children: _methods.map((m) {
-        final isSelected = currentMethod == m['id'];
-        return _OptionTile(
-          label: m['name'] as String,
-          isSelected: isSelected,
-          onTap: () {
-            cubit.setPrayerMethod(m['id'] as int);
-            Navigator.pop(context);
-            setState(() {});
-            _reloadPrayerTimes();
-          },
-        );
-      }).toList(),
-    );
-  }
-
-  void _showSchoolDialog() {
-    final cubit = context.read<PrayerCubit>();
-    final currentSchool = cubit.prayerSchool;
-    final schools = [
-      {
-        'id': 0,
-        'name': "Syafi'i / Maliki / Hanbali",
-        'sub': 'Waktu Ashar lebih awal',
-      },
-      {'id': 1, 'name': 'Hanafi', 'sub': 'Waktu Ashar lebih akhir'},
-    ];
-    _showOptionsBottomSheet(
-      title: 'Madzhab Ashar',
-      children: schools.map((s) {
-        final isSelected = currentSchool == s['id'];
-        return _OptionTile(
-          label: s['name'] as String,
-          subtitle: s['sub'] as String,
-          isSelected: isSelected,
-          onTap: () {
-            cubit.setPrayerSchool(s['id'] as int);
-            Navigator.pop(context);
-            setState(() {});
-            _reloadPrayerTimes();
-          },
-        );
-      }).toList(),
-    );
-  }
-
-  void _showTimeFormatDialog() {
-    final cubit = context.read<PrayerCubit>();
-    final current = cubit.use12HourFormat;
-    final formats = [
-      {'value': false, 'name': '24 Jam', 'sub': 'Contoh: 14:30'},
-      {'value': true, 'name': '12 Jam (AM/PM)', 'sub': 'Contoh: 2:30 PM'},
-    ];
-    _showOptionsBottomSheet(
-      title: 'Format Waktu',
-      children: formats.map((f) {
-        final isSelected = current == f['value'];
-        return _OptionTile(
-          label: f['name'] as String,
-          subtitle: f['sub'] as String,
-          isSelected: isSelected,
-          onTap: () {
-            cubit.setUse12HourFormat(f['value'] as bool);
-            Navigator.pop(context);
-            setState(() {});
-          },
-        );
-      }).toList(),
-    );
-  }
-
-  void _showOptionsBottomSheet({
-    required String title,
-    required List<Widget> children,
-  }) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => _BottomSheet(
-        title: title,
-        child: Column(mainAxisSize: MainAxisSize.min, children: children),
-      ),
-    );
-  }
-
-  void _reloadPrayerTimes() {
-    context.read<PrayerCubit>().loadPrayerTimes();
-  }
 }
 
 class _SectionLabel extends StatelessWidget {
-  final String label;
-  const _SectionLabel({required this.label});
+  final String text;
+
+  const _SectionLabel(this.text);
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 8, top: 8),
-      child: Text(
-        label.toUpperCase(),
-        style: AppTextStyles.sectionHeader(context).copyWith(fontSize: 11),
-      ),
+      padding: const EdgeInsets.only(left: 4, top: 20, bottom: 8),
+      child: Text(text.toUpperCase(), style: AppTokens.cardLabel(context)),
     );
   }
 }
 
 class _SettingsCard extends StatelessWidget {
   final List<Widget> children;
+
   const _SettingsCard({required this.children});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.homeSurface(context),
+        borderRadius: BorderRadius.circular(AppTokens.cardRadius),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(children: children),
@@ -324,27 +341,26 @@ class _SettingsCard extends StatelessWidget {
   }
 }
 
-class _Divider extends StatelessWidget {
+class _TileDivider extends StatelessWidget {
+  const _TileDivider();
+
   @override
   Widget build(BuildContext context) {
-    return Divider(
-      height: 1,
-      indent: 56,
-      color: AppColors.dividerColor(context),
+    return Padding(
+      padding: const EdgeInsets.only(left: 74),
+      child: Divider(height: 1, color: AppColors.homeDivider(context)),
     );
   }
 }
 
-class _SelectTile extends StatelessWidget {
+class _SelectRow extends StatelessWidget {
   final IconData icon;
-  final Color iconColor;
   final String title;
   final String value;
   final VoidCallback? onTap;
 
-  const _SelectTile({
+  const _SelectRow({
     required this.icon,
-    required this.iconColor,
     required this.title,
     required this.value,
     this.onTap,
@@ -352,171 +368,50 @@ class _SelectTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: _IconBox(icon: icon, color: iconColor),
-      title: Text(
-        title,
-        style: AppTextStyles.bodyMedium(
-          context,
-        ).copyWith(fontWeight: FontWeight.w500),
-      ),
-      subtitle: Padding(
-        padding: const EdgeInsets.only(top: 2),
-        child: Text(
-          value,
-          style: AppTextStyles.bodySmall(context).copyWith(
-            color: AppColors.primary,
-            fontWeight: FontWeight.w500,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ),
-      trailing: Icon(
-        Icons.chevron_right_rounded,
-        size: 18,
-        color: AppColors.textSecondary(context),
-      ),
-      onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-    );
-  }
-}
-
-class _IconBox extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-
-  const _IconBox({required this.icon, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Icon(icon, size: 20, color: color),
-    );
-  }
-}
-
-class _BottomSheet extends StatelessWidget {
-  final String title;
-  final Widget child;
-
-  const _BottomSheet({required this.title, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    final bottomPadding =
-        MediaQuery.of(context).viewInsets.bottom +
-        MediaQuery.of(context).padding.bottom +
-        16;
-
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.85,
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface(context),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: const EdgeInsets.only(left: 20, right: 20, top: 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  color: AppColors.dividerColor(context),
-                  borderRadius: BorderRadius.circular(2),
-                ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 72),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              StarIconContainer(
+                icon: icon,
+                containerColor: AppColors.homeStarSecondary(context),
+                iconColor: AppColors.homeArabicSecondary(context),
               ),
-            ),
-            Text(title, style: AppTextStyles.headingSmall(context)),
-            const SizedBox(height: 16),
-            Flexible(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: bottomPadding),
-                  child: child,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _OptionTile extends StatelessWidget {
-  final String label;
-  final String? subtitle;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _OptionTile({
-    required this.label,
-    this.subtitle,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary.withValues(alpha: 0.1)
-              : AppColors.card(context),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected
-                ? AppColors.primary.withValues(alpha: 0.5)
-                : Colors.transparent,
-          ),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: AppTextStyles.bodyMedium(context).copyWith(
-                      fontWeight: isSelected
-                          ? FontWeight.w600
-                          : FontWeight.normal,
-                      color: isSelected
-                          ? AppColors.primary
-                          : AppColors.textPrimary(context),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: AppTokens.tileTitle(context),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  if (subtitle != null) ...[
                     const SizedBox(height: 2),
-                    Text(subtitle!, style: AppTextStyles.bodySmall(context)),
+                    Text(
+                      value,
+                      style: AppTokens.tileValue(context),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
-                ],
+                ),
               ),
-            ),
-            if (isSelected)
-              Icon(Icons.check_rounded, color: AppColors.primary, size: 20),
-          ],
+              const SizedBox(width: 10),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 20,
+                color: AppColors.homeInkSecondary(context),
+              ),
+            ],
+          ),
         ),
       ),
     );

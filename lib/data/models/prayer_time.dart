@@ -106,6 +106,63 @@ class PrayerTime extends Equatable {
     return '$hour:$minute $period';
   }
 
+  static String zoneLabelForNow() {
+    switch (DateTime.now().timeZoneOffset.inHours) {
+      case 8:
+        return 'WITA';
+      case 9:
+        return 'WIT';
+      default:
+        return 'WIB';
+    }
+  }
+
+  static const List<String> monthNamesId = [
+    'Januari',
+    'Februari',
+    'Maret',
+    'April',
+    'Mei',
+    'Juni',
+    'Juli',
+    'Agustus',
+    'September',
+    'Oktober',
+    'November',
+    'Desember',
+  ];
+
+  static const List<String> monthShortId = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'Mei',
+    'Jun',
+    'Jul',
+    'Agu',
+    'Sep',
+    'Okt',
+    'Nov',
+    'Des',
+  ];
+
+  static const List<String> weekdayNamesId = [
+    'Senin',
+    'Selasa',
+    'Rabu',
+    'Kamis',
+    'Jumat',
+    'Sabtu',
+    'Minggu',
+  ];
+
+  static String formatDateId(DateTime date) {
+    final weekday = weekdayNamesId[date.weekday - 1];
+    return '$weekday, ${date.day} ${monthShortId[date.month - 1]} '
+        '${date.year}';
+  }
+
   List<PrayerItem> toList() => [
     PrayerItem(name: 'Imsak', time: imsak),
     PrayerItem(name: 'Subuh', time: fajr),
