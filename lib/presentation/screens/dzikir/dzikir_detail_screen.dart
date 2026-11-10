@@ -1,33 +1,40 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_text_styles.dart';
+import '../../../core/constants/app_tokens.dart';
 import '../../../data/models/dzikir.dart';
 
 class DzikirDetailScreen extends StatelessWidget {
   final DzikirCategory category;
+
   const DzikirDetailScreen({super.key, required this.category});
 
   @override
   Widget build(BuildContext context) {
     final items = category.items;
     return Scaffold(
-      backgroundColor: AppColors.background(context),
+      backgroundColor: AppColors.homeBackground(context),
       appBar: AppBar(
-        backgroundColor: AppColors.background(context),
+        backgroundColor: AppColors.homeBackground(context),
         elevation: 0,
         scrolledUnderElevation: 0,
+        iconTheme: IconThemeData(color: AppColors.homeInk(context)),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(category.title, style: AppTextStyles.headingSmall(context)),
-            Text(category.subtitle, style: AppTextStyles.bodySmall(context)),
+            Text(category.title, style: AppTokens.tileTitle(context)),
+            Text(category.subtitle, style: AppTokens.tileSubtitle(context)),
           ],
         ),
       ),
       body: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+        padding: const EdgeInsets.fromLTRB(
+          AppTokens.pageMargin,
+          8,
+          AppTokens.pageMargin,
+          32,
+        ),
         itemCount: items.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 12),
+        separatorBuilder: (_, _) => const SizedBox(height: AppTokens.itemGap),
         itemBuilder: (context, index) {
           final item = items[index];
           return _DzikirCard(item: item);
@@ -42,95 +49,105 @@ class _DzikirCard extends StatelessWidget {
 
   const _DzikirCard({required this.item});
 
+  static final RegExp _ornamentRegex = RegExp(r'[\uFD3E\uFD3F\u0660-\u0669]+');
+
+  List<TextSpan> _buildArabicSpans(BuildContext context) {
+    final spans = <TextSpan>[];
+    var last = 0;
+    for (final match in _ornamentRegex.allMatches(item.arabic)) {
+      if (match.start > last) {
+        spans.add(TextSpan(text: item.arabic.substring(last, match.start)));
+      }
+      spans.add(
+        TextSpan(
+          text: match.group(0),
+          style: const TextStyle(color: AppColors.gold),
+        ),
+      );
+      last = match.end;
+    }
+    if (last < item.arabic.length) {
+      spans.add(TextSpan(text: item.arabic.substring(last)));
+    }
+    return spans;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.dividerColor(context), width: 1),
+        color: AppColors.homeSurface(context),
+        borderRadius: BorderRadius.circular(AppTokens.cardRadius),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (item.count > 1)
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '${item.count}x',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                    ),
-                  ),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: Text(
+                '${item.count}x',
+                style: TextStyle(
+                  fontFamily: AppTokens.fontLatin,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.gold,
                 ),
               ),
             ),
-
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: Text(
-              item.arabic,
+            padding: EdgeInsets.fromLTRB(16, item.count > 1 ? 8 : 16, 16, 0),
+            child: Text.rich(
+              TextSpan(
+                children: _buildArabicSpans(context),
+                style: TextStyle(
+                  fontFamily: AppTokens.fontArabic,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.homeInk(context),
+                  height: 2.2,
+                ),
+              ),
               textAlign: TextAlign.right,
               textDirection: TextDirection.rtl,
-              style: AppTextStyles.arabicMedium(
-                context,
-              ).copyWith(fontSize: 22, height: 2.0),
             ),
           ),
-
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Divider(color: AppColors.dividerColor(context), height: 24),
+            child: Divider(height: 24, color: AppColors.homeDivider(context)),
           ),
-
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
             child: Text(
               item.transliteration,
-              style: AppTextStyles.bodySmall(context).copyWith(
-                fontStyle: FontStyle.italic,
-                color: AppColors.primary.withValues(alpha: 0.85),
+              style: TextStyle(
+                fontFamily: AppTokens.fontLatin,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: AppColors.homeInk(context),
+                height: 1.5,
               ),
             ),
           ),
-
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
             child: Text(
               item.translation,
-              style: AppTextStyles.bodySmall(context),
+              style: AppTokens.tileSubtitle(context).copyWith(height: 1.6),
             ),
           ),
-
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.05),
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(18),
-                bottomRight: Radius.circular(18),
-              ),
-            ),
+            color: AppColors.homeStarSecondary(context),
             child: Text(
               item.source,
               style: TextStyle(
+                fontFamily: AppTokens.fontLatin,
                 fontSize: 11,
-                color: AppColors.textSecondary(context),
                 fontWeight: FontWeight.w500,
+                color: AppColors.homeInkSecondary(context),
               ),
             ),
           ),

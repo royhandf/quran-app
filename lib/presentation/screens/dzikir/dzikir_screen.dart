@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_text_styles.dart';
+import '../../../core/constants/app_tokens.dart';
 import '../../../core/services/dzikir_service.dart';
 import '../../../data/models/dzikir.dart';
+import '../../widgets/star_icon_container.dart';
 import 'dzikir_detail_screen.dart';
 
 class DzikirScreen extends StatefulWidget {
@@ -37,32 +38,41 @@ class _DzikirScreenState extends State<DzikirScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background(context),
+      backgroundColor: AppColors.homeBackground(context),
       appBar: AppBar(
-        backgroundColor: AppColors.background(context),
+        backgroundColor: AppColors.homeBackground(context),
         elevation: 0,
         scrolledUnderElevation: 0,
-        title: Text('Dzikir', style: AppTextStyles.headingSmall(context)),
+        iconTheme: IconThemeData(color: AppColors.homeInk(context)),
+        title: Text('Dzikir', style: AppTokens.pageTitle(context)),
       ),
       body: FutureBuilder<List<DzikirCategory>>(
         future: _future,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(color: AppColors.forest),
+            );
           }
           if (snapshot.hasError) {
             return Center(
               child: Text(
                 'Gagal memuat data',
-                style: AppTextStyles.bodyMedium(context),
+                style: AppTokens.tileSubtitle(context),
               ),
             );
           }
           final categories = snapshot.data!;
           return ListView.separated(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+            padding: const EdgeInsets.fromLTRB(
+              AppTokens.pageMargin,
+              8,
+              AppTokens.pageMargin,
+              32,
+            ),
             itemCount: categories.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            separatorBuilder: (_, _) =>
+                const SizedBox(height: AppTokens.itemGap),
             itemBuilder: (context, index) {
               final cat = categories[index];
               return _CategoryCard(
@@ -114,54 +124,54 @@ class _CategoryCardState extends State<_CategoryCard> {
         scale: _pressed ? 0.97 : 1.0,
         duration: const Duration(milliseconds: 100),
         child: Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.card(context),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.dividerColor(context)),
+            color: AppColors.homeSurface(context),
+            borderRadius: BorderRadius.circular(AppTokens.cardRadius),
           ),
           child: Row(
             children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(widget.icon, color: AppColors.primary, size: 26),
+              StarIconContainer(
+                icon: widget.icon,
+                containerColor: AppColors.homeStarSecondary(context),
+                iconColor: AppColors.homeArabicSecondary(context),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       widget.category.title,
-                      style: AppTextStyles.bodyLarge(
-                        context,
-                      ).copyWith(fontWeight: FontWeight.w700),
+                      style: AppTokens.menuLabel(context),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Text(
                       widget.category.subtitle,
-                      style: AppTextStyles.bodySmall(context),
+                      style: AppTokens.tileSubtitle(context),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 8),
                     Text(
                       '${widget.category.items.length} bacaan',
                       style: TextStyle(
-                        color: AppColors.primary,
+                        fontFamily: AppTokens.fontLatin,
                         fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.gold,
                       ),
                     ),
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
               Icon(
                 Icons.chevron_right_rounded,
-                color: AppColors.textSecondary(context),
+                color: AppColors.homeInkSecondary(context),
               ),
             ],
           ),
