@@ -9,6 +9,7 @@ import '../../blocs/bookmark/bookmark_cubit.dart';
 import '../../blocs/bookmark/bookmark_state.dart';
 import '../../blocs/quran/quran_cubit.dart';
 import '../../blocs/settings/settings_cubit.dart';
+import '../../widgets/sheet_shell.dart';
 import '../../widgets/star_icon_container.dart';
 import '../quran/surah_detail_screen.dart';
 import '../quran/surah_list_screen.dart';
@@ -140,38 +141,60 @@ class _LastReadScreenState extends State<LastReadScreen> {
         return _BookmarkRow(
           bookmark: bm,
           onTap: () => _navigateToSurah(bm.surahId, bm.ayahNumber),
-          onDelete: () async {
-            final confirmed = await _confirmDelete(context);
-            if (confirmed == true && context.mounted) {
-              context.read<BookmarkCubit>().toggleBookmark(
-                surahId: bm.surahId,
-                surahName: bm.surahName,
-                ayahNumber: bm.ayahNumber,
-                ayahText: bm.ayahText,
-              );
-            }
-          },
+          onDelete: () => _showDeleteSheet(context, bm),
         );
       },
     );
   }
 
-  Future<bool?> _confirmDelete(BuildContext context) {
-    return showDialog<bool>(
+  void _showDeleteSheet(BuildContext context, Bookmark bm) {
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Hapus Penanda?'),
-        content: const Text('Anda yakin ingin menghapus penanda ini?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
-          ),
-        ],
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => SheetShell(
+        title: 'Hapus penanda',
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '"${bm.surahName}", Ayat ${bm.ayahNumber} akan dihapus dari '
+              'daftar penanda.',
+              style: AppTokens.tileSubtitle(context).copyWith(height: 1.5),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: _SheetButton(
+                    label: 'Batal',
+                    background: AppColors.homeOptionSurface(context),
+                    foreground: AppColors.homeInk(context),
+                    onTap: () => Navigator.pop(sheetContext),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _SheetButton(
+                    label: 'Hapus',
+                    background: AppColors.homeDanger(context),
+                    foreground: Colors.white,
+                    onTap: () {
+                      context.read<BookmarkCubit>().toggleBookmark(
+                        surahId: bm.surahId,
+                        surahName: bm.surahName,
+                        ayahNumber: bm.ayahNumber,
+                        ayahText: bm.ayahText,
+                      );
+                      Navigator.pop(sheetContext);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -325,6 +348,46 @@ class _AyatPill extends StatelessWidget {
           fontSize: 11,
           fontWeight: FontWeight.w600,
           color: AppColors.homeArabicSecondary(context),
+        ),
+      ),
+    );
+  }
+}
+
+class _SheetButton extends StatelessWidget {
+  final String label;
+  final Color background;
+  final Color foreground;
+  final VoidCallback onTap;
+
+  const _SheetButton({
+    required this.label,
+    required this.background,
+    required this.foreground,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: background,
+      borderRadius: BorderRadius.circular(100),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(100),
+        child: SizedBox(
+          height: 48,
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontFamily: AppTokens.fontLatin,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: foreground,
+              ),
+            ),
+          ),
         ),
       ),
     );

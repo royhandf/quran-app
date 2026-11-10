@@ -40,6 +40,7 @@ class AppColors {
   static const Color gold = Color(0xFFD9A441);
   static const Color ink = Color(0xFF17251E);
   static const Color inkSecondary = Color(0xFF5E6E64);
+  static const Color danger = Color(0xFFB3402F);
 
   // Palet baru (dark) - varian gelap untuk layar hasil redesign
   static const Color darkHomeBackground = Color(0xFF0D0F0C);
@@ -48,6 +49,7 @@ class AppColors {
   static const Color darkHomeStarContainer = Color(0xFF252F26);
   static const Color darkHomeInk = Color(0xFFE8EDE8);
   static const Color darkHomeInkSecondary = Color(0xFF9BA79E);
+  static const Color darkDanger = Color(0xFFE07A6E);
 
   // Helper palet baru (mengikuti brightness tema)
   static bool _homeIsDark(BuildContext context) =>
@@ -94,6 +96,10 @@ class AppColors {
   /// Latar opsi/preview yang tidak terpilih di atas sheet
   static Color homeOptionSurface(BuildContext context) =>
       _homeIsDark(context) ? darkHomeStarContainer : sageLight;
+
+  /// Warna aksi destruktif (hapus): merah redup per mode
+  static Color homeDanger(BuildContext context) =>
+      _homeIsDark(context) ? darkDanger : danger;
 
   // Context-aware helpers
   static Color background(BuildContext context) =>
