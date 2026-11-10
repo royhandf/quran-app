@@ -21,7 +21,6 @@ class PrayerCard extends StatelessWidget {
   final bool use12h;
   final String zoneLabel;
   final bool showRemaining;
-  final VoidCallback? onKiblatTap;
 
   final String? dateHeading;
 
@@ -31,7 +30,6 @@ class PrayerCard extends StatelessWidget {
     this.use12h = false,
     this.zoneLabel = 'WIB',
     this.showRemaining = true,
-    this.onKiblatTap,
     this.dateHeading,
   });
 
@@ -119,39 +117,6 @@ class PrayerCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    if (onKiblatTap != null)
-                      GestureDetector(
-                        onTap: onKiblatTap,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.18),
-                            borderRadius: BorderRadius.circular(100),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.explore_rounded,
-                                color: Colors.white,
-                                size: 13,
-                              ),
-                              SizedBox(width: 4),
-                              Text(
-                                'Kiblat',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
                   ],
                 ),
                 const SizedBox(height: 6),

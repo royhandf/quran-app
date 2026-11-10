@@ -10,7 +10,6 @@ import '../../widgets/home/prayer_card.dart';
 import '../../widgets/sheet_shell.dart';
 import '../../widgets/star_icon_container.dart';
 import 'prayer_settings_screen.dart';
-import 'qibla_screen.dart';
 
 class PrayerTimesScreen extends StatefulWidget {
   const PrayerTimesScreen({super.key});
@@ -213,7 +212,6 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
               use12h: use12h,
               zoneLabel: zone,
               showRemaining: _isToday,
-              onKiblatTap: () => _openQibla(context, state),
               dateHeading: _isToday
                   ? null
                   : PrayerTime.formatDateId(_viewedDate!),
@@ -256,23 +254,6 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
         ],
       ),
     );
-  }
-
-  void _openQibla(BuildContext context, PrayerLoaded state) {
-    if (state.qiblaDirection != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => QiblaScreen(qiblaDirection: state.qiblaDirection!),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Arah kiblat tidak tersedia. Aktifkan GPS.'),
-        ),
-      );
-    }
   }
 }
 
