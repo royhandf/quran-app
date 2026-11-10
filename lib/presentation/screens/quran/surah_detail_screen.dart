@@ -710,45 +710,70 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
 
   int? _highlightedAyah;
 
-  void _scrollToAyah(int ayahNumber, {bool autoHighlight = true}) {
+  void _scrollToAyah(
+    int ayahNumber, {
+    bool autoHighlight = true,
+    int attempt = 0,
+  }) {
+    if (attempt > 40) {
+      if (autoHighlight) _highlightAyah(ayahNumber);
+      return;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final key = _ayahKeys[ayahNumber];
-      if (key?.currentContext != null) {
+      if (!mounted) return;
+      final keyContext = _ayahKeys[ayahNumber]?.currentContext;
+      if (keyContext != null) {
         Scrollable.ensureVisible(
-          key!.currentContext!,
+          keyContext,
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
           alignment: 0.1,
         ).then((_) {
           if (autoHighlight) _highlightAyah(ayahNumber);
         });
-      } else {
-        final estimatedOffset = 150.0 + (ayahNumber - 1) * 200.0;
-        _scrollController
-            .animateTo(
-              estimatedOffset.clamp(
-                0.0,
-                _scrollController.position.maxScrollExtent,
-              ),
-              duration: const Duration(milliseconds: 400),
-              curve: Curves.easeInOut,
-            )
-            .then((_) {
-              Future.delayed(const Duration(milliseconds: 100), () {
-                final newKey = _ayahKeys[ayahNumber];
-                if (newKey?.currentContext != null) {
-                  Scrollable.ensureVisible(
-                    newKey!.currentContext!,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    alignment: 0.1,
-                  ).then((_) => _highlightAyah(ayahNumber));
-                } else {
-                  if (autoHighlight) _highlightAyah(ayahNumber);
-                }
-              });
-            });
+        return;
       }
+
+      final max = _scrollController.position.maxScrollExtent;
+      int? minBuilt;
+      int? maxBuilt;
+      _ayahKeys.forEach((number, key) {
+        if (key.currentContext != null) {
+          if (minBuilt == null || number < minBuilt!) minBuilt = number;
+          if (maxBuilt == null || number > maxBuilt!) maxBuilt = number;
+        }
+      });
+
+      if (minBuilt == null || max <= 0) {
+        _scrollToAyah(
+          ayahNumber,
+          autoHighlight: autoHighlight,
+          attempt: attempt + 1,
+        );
+        return;
+      }
+
+      final total = (_currentSurah.versesCount > 1)
+          ? _currentSurah.versesCount
+          : 1;
+      final avgHeight = max / total;
+
+      double target;
+      if (ayahNumber > maxBuilt!) {
+        target =
+            _scrollController.offset + (ayahNumber - maxBuilt!) * avgHeight;
+      } else if (ayahNumber < minBuilt!) {
+        target =
+            _scrollController.offset - (minBuilt! - ayahNumber) * avgHeight;
+      } else {
+        target = _scrollController.offset;
+      }
+      _scrollController.jumpTo(target.clamp(0.0, max));
+      _scrollToAyah(
+        ayahNumber,
+        autoHighlight: autoHighlight,
+        attempt: attempt + 1,
+      );
     });
   }
 

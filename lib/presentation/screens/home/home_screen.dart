@@ -8,6 +8,7 @@ import '../../blocs/bookmark/bookmark_cubit.dart';
 import '../../blocs/bookmark/bookmark_state.dart';
 import '../../blocs/prayer/prayer_cubit.dart';
 import '../../blocs/prayer/prayer_state.dart';
+import '../../blocs/quran/quran_cubit.dart';
 import '../../widgets/home/bookmark_banner.dart';
 import '../../widgets/home/menu_card.dart';
 import '../../widgets/home/prayer_card.dart';
@@ -42,6 +43,11 @@ class _HomeScreenState extends State<HomeScreen> {
           context.read<PrayerCubit>().loadPrayerTimes();
         }
         context.read<BookmarkCubit>().loadBookmarks();
+
+        final quranCubit = context.read<QuranCubit>();
+        if (quranCubit.allSurahs.isEmpty) {
+          quranCubit.loadSurahs();
+        }
 
         // Cek update dari Play Store, tampilkan dialog jika ada
         Future.delayed(const Duration(seconds: 2), () {
@@ -186,7 +192,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Banner hanya muncul bila ada bookmark; saat kosong tidak menyisakan celah.
   Widget _buildBookmarkSection() {
     return BlocBuilder<BookmarkCubit, BookmarkState>(
       builder: (context, state) {
@@ -197,7 +202,20 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.only(top: AppTokens.itemGap),
           child: BookmarkBanner(
             bookmark: state.bookmarks.first,
-            onTap: () => _navigate(const LastReadScreen()),
+            onTap: () {
+              final quranCubit = context.read<QuranCubit>();
+              if (quranCubit.allSurahs.isEmpty) {
+                quranCubit.loadSurahs();
+              }
+              final surah = quranCubit.findSurahById(
+                state.bookmarks.first.surahId,
+              );
+              if (surah != null) {
+                LastReadScreen.openBookmark(context, state.bookmarks.first);
+              } else {
+                _navigate(const LastReadScreen());
+              }
+            },
           ),
         );
       },

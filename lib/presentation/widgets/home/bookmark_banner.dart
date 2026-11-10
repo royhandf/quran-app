@@ -3,6 +3,7 @@
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_tokens.dart';
 import '../../../data/models/bookmark.dart';
+import '../star_icon_container.dart';
 
 class BookmarkBanner extends StatelessWidget {
   final Bookmark bookmark;
@@ -30,16 +31,10 @@ class BookmarkBanner extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.darkHomeStarContainer
-                      : Colors.white,
-                  borderRadius: BorderRadius.circular(AppTokens.buttonRadius),
-                ),
-                child: Icon(Icons.bookmark_rounded, size: 20, color: accent),
+              StarIconContainer(
+                icon: Icons.bookmark_rounded,
+                containerColor: AppColors.homeStarSecondary(context),
+                iconColor: isDark ? AppColors.gold : AppColors.forest,
               ),
               const SizedBox(width: 14),
               Expanded(

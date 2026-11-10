@@ -17,6 +17,53 @@ import '../quran/surah_list_screen.dart';
 class LastReadScreen extends StatefulWidget {
   const LastReadScreen({super.key});
 
+  static void openBookmark(
+    BuildContext context,
+    Bookmark bookmark, {
+    VoidCallback? onFallback,
+  }) {
+    final quranCubit = context.read<QuranCubit>();
+    final surah = quranCubit.findSurahById(bookmark.surahId);
+
+    if (surah == null) {
+      if (onFallback != null) {
+        onFallback();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Gagal memuat data surah. Periksa koneksi internet.'),
+          ),
+        );
+      }
+      return;
+    }
+
+    final reciterId = context.read<SettingsCubit>().state.selectedReciterId;
+    final repo = quranCubit.repository;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MultiBlocProvider(
+          providers: [
+            BlocProvider(
+              create: (_) =>
+                  QuranCubit(quranCubit.repository)..loadVerses(surah),
+            ),
+            BlocProvider(
+              create: (_) =>
+                  AudioCubit(repo)..loadSurahAudio(surah.id, reciterId),
+            ),
+          ],
+          child: SurahDetailScreen(
+            surah: surah,
+            initialAyah: bookmark.ayahNumber,
+            allSurahs: quranCubit.allSurahs,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   State<LastReadScreen> createState() => _LastReadScreenState();
 }
@@ -140,7 +187,7 @@ class _LastReadScreenState extends State<LastReadScreen> {
         final bm = bookmarks[index];
         return _BookmarkRow(
           bookmark: bm,
-          onTap: () => _navigateToSurah(bm.surahId, bm.ayahNumber),
+          onTap: () => LastReadScreen.openBookmark(context, bm),
           onDelete: () => _showDeleteSheet(context, bm),
         );
       },
@@ -198,44 +245,6 @@ class _LastReadScreenState extends State<LastReadScreen> {
       ),
     );
   }
-
-  void _navigateToSurah(int surahId, int ayahNumber) {
-    final quranCubit = context.read<QuranCubit>();
-    final surah = quranCubit.findSurahById(surahId);
-
-    if (surah != null) {
-      final reciterId = context.read<SettingsCubit>().state.selectedReciterId;
-      final repo = quranCubit.repository;
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => MultiBlocProvider(
-            providers: [
-              BlocProvider(
-                create: (_) =>
-                    QuranCubit(quranCubit.repository)..loadVerses(surah),
-              ),
-              BlocProvider(
-                create: (_) =>
-                    AudioCubit(repo)..loadSurahAudio(surah.id, reciterId),
-              ),
-            ],
-            child: SurahDetailScreen(
-              surah: surah,
-              initialAyah: ayahNumber,
-              allSurahs: quranCubit.allSurahs,
-            ),
-          ),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Gagal memuat data surah. Periksa koneksi internet.'),
-        ),
-      );
-    }
-  }
 }
 
 class _BookmarkRow extends StatelessWidget {
@@ -273,7 +282,7 @@ class _BookmarkRow extends StatelessWidget {
         child: Row(
           children: [
             StarIconContainer(
-              icon: Icons.bookmark_rounded,
+              icon: Icons.bookmark_border_rounded,
               containerColor: AppColors.homeStarSecondary(context),
               iconColor: AppColors.homeArabicSecondary(context),
             ),
