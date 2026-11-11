@@ -7,6 +7,9 @@ import '../../blocs/settings/settings_cubit.dart';
 import '../../blocs/settings/settings_state.dart';
 import '../../widgets/sheet_shell.dart';
 import '../../widgets/star_icon_container.dart';
+import 'privacy_policy_screen.dart';
+
+const String _appVersion = '1.0.0';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -206,6 +209,34 @@ class SettingsScreen extends StatelessWidget {
                                 cubit.setTranslationFontSize(v.toDouble()),
                           )
                         : null,
+                  ),
+                ],
+              ),
+              const _SectionLabel('Tentang Aplikasi'),
+              _SettingsCard(
+                children: [
+                  _SelectTile(
+                    icon: Icons.privacy_tip_outlined,
+                    title: 'Kebijakan Privasi',
+                    value: null,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const PrivacyPolicyScreen(),
+                      ),
+                    ),
+                  ),
+                  const _TileDivider(),
+                  const _InfoRow(
+                    icon: Icons.code_rounded,
+                    title: 'Dikembangkan oleh',
+                    value: 'royhandf',
+                  ),
+                  const _TileDivider(),
+                  const _InfoRow(
+                    icon: Icons.info_outline_rounded,
+                    title: 'Versi',
+                    value: _appVersion,
                   ),
                 ],
               ),
@@ -660,6 +691,39 @@ class _SelectTile extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
+
+  const _InfoRow({
+    required this.icon,
+    required this.title,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 72),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: Row(
+        children: [
+          StarIconContainer(
+            icon: icon,
+            containerColor: AppColors.homeStarSecondary(context),
+            iconColor: AppColors.homeArabicSecondary(context),
+          ),
+          const SizedBox(width: 14),
+          Expanded(child: Text(title, style: AppTokens.tileTitle(context))),
+          const SizedBox(width: 10),
+          Text(value, style: AppTokens.tileValue(context)),
+        ],
       ),
     );
   }
