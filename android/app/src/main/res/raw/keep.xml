@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ic_stat_adzan hanya dirujuk lewat string di runtime, tanpa aturan ini
+     resource shrinker membuangnya di build release. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_stat_adzan" />
